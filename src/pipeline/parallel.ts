@@ -82,9 +82,9 @@ export async function parallelStyleGlyphs(
       parentPort.on("message", (msg) => {
         try {
           const result = styleGlyphs(msg.glyphs, msg.style);
-          parentPort.postMessage({ id: msg.id, result });
+          parentPort.postMessage({ id: msg.id, done: true, result });
         } catch (err) {
-          parentPort.postMessage({ id: msg.id, error: String(err) });
+          parentPort.postMessage({ id: msg.id, error: String(err && err.stack ? err.stack : err) });
         }
       });
     `;
@@ -100,6 +100,7 @@ export async function parallelStyleGlyphs(
 
     await Promise.all(
       chunks.map((chunk, index) => {
+        const chunkLen = chunk ? chunk.length : 0;
         return new Promise<void>((resolvePromise, rejectPromise) => {
           let worker: FastWorkerInstance;
           try {
@@ -107,7 +108,7 @@ export async function parallelStyleGlyphs(
           } catch {
             try {
               results[index] = styleGlyphs(chunk, style);
-              chunkProgress[index] = chunk.length;
+              chunkProgress[index] = chunkLen;
               reportProgress();
               resolvePromise();
             } catch (err) {
@@ -128,7 +129,7 @@ export async function parallelStyleGlyphs(
               } else if (msg.done) {
                 worker.terminate();
                 results[index] = msg.result!;
-                chunkProgress[index] = chunk.length;
+                chunkProgress[index] = chunkLen;
                 reportProgress();
                 resolvePromise();
               }

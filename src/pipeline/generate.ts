@@ -619,39 +619,42 @@ export async function generateBlockFont(
         bytes,
       }));
     } else {
-      for (const style of styles) {
-        let bytes: Uint8Array;
-        try {
-          const styled = styledByStyle.get(style)!;
-          bytes = serializeStyledFontDeterministically(styled, style, format, fontOptions);
-        } catch (error) {
-          throw new BlockFontGenerationError(
-            `Unable to generate ${style} ${format} font`,
-            { style, format, version, fontId },
-            error,
-          );
-        }
-        const fileName = `BlockFont-${styleLabel(style)}.${format}`;
-        const path = resolve(outputDirectory, fileName);
-        try {
-          await fileSystem.writeFile(path, bytes);
-        } catch (error) {
-          throw new BlockFontOutputError(path, error);
-        }
+      const styleResults = await Promise.all(
+        styles.map(async (style) => {
+          let bytes: Uint8Array;
+          try {
+            const styled = styledByStyle.get(style)!;
+            bytes = serializeStyledFontDeterministically(styled, style, format, fontOptions);
+          } catch (error) {
+            throw new BlockFontGenerationError(
+              `Unable to generate ${style} ${format} font`,
+              { style, format, version, fontId },
+              error,
+            );
+          }
+          const fileName = `BlockFont-${styleLabel(style)}.${format}`;
+          const path = resolve(outputDirectory, fileName);
+          try {
+            await fileSystem.writeFile(path, bytes);
+          } catch (error) {
+            throw new BlockFontOutputError(path, error);
+          }
 
-        options.onProgress?.({
-          stage: "writing-files",
-          message: `Generated ${fileName} (${(bytes.length / 1024).toFixed(1)} KB)`,
-        });
+          options.onProgress?.({
+            stage: "writing-files",
+            message: `Generated ${fileName} (${(bytes.length / 1024).toFixed(1)} KB)`,
+          });
 
-        files.push(Object.freeze({
-          style,
-          format,
-          fileName,
-          path,
-          bytes,
-        }));
-      }
+          return Object.freeze({
+            style,
+            format,
+            fileName,
+            path,
+            bytes,
+          });
+        }),
+      );
+      files.push(...styleResults);
     }
   }
 
