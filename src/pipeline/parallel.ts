@@ -8,6 +8,7 @@ import { styleGlyphs, type StyledGlyph } from "../styles/variants";
 
 import { computeGlyphCacheKey, GlyphCacheManager } from "./cache";
 import { createFastWorker, type FastWorkerInstance } from "../utils/bun-compat";
+import { encodeGlyphsToBinaryBuffer } from "../geometry/shared-buffer";
 
 export function getConcurrency(): number {
   try {
@@ -74,14 +75,25 @@ export async function parallelStyleGlyphs(
       workerPath = resolve(__dirname, "../../dist/pipeline/worker.js");
     }
 
+    let sharedBufferPath = resolve(__dirname, "../geometry/shared-buffer");
+    if (!existsSync(`${sharedBufferPath}.js`) && existsSync(resolve(__dirname, "../../dist/geometry/shared-buffer.js"))) {
+      sharedBufferPath = resolve(__dirname, "../../dist/geometry/shared-buffer.js");
+    }
+
     const workerModule = workerPath;
+    const sharedBufferModule = sharedBufferPath;
     const workerCode = `
       const { parentPort } = require("node:worker_threads");
       const { styleGlyphs } = require("${workerModule.replace(/\\/g, "\\\\")}");
+      const { decodeGlyphsFromBinaryBuffer } = require("${sharedBufferModule.replace(/\\/g, "\\\\")}");
 
       parentPort.on("message", (msg) => {
         try {
-          const result = styleGlyphs(msg.glyphs, msg.style);
+          let glyphs = msg.glyphs;
+          if (!glyphs && msg.glyphBuffer) {
+            glyphs = decodeGlyphsFromBinaryBuffer(msg.glyphBuffer);
+          }
+          const result = styleGlyphs(glyphs, msg.style);
           parentPort.postMessage({ id: msg.id, done: true, result });
         } catch (err) {
           parentPort.postMessage({ id: msg.id, error: String(err && err.stack ? err.stack : err) });
@@ -141,7 +153,12 @@ export async function parallelStyleGlyphs(
             rejectPromise(err);
           });
 
-          worker.postMessage({ id: index, glyphs: chunk, style });
+          const binaryView = encodeGlyphsToBinaryBuffer(chunk);
+          if (binaryView.buffer instanceof ArrayBuffer) {
+            worker.postMessage({ id: index, glyphBuffer: binaryView.buffer, style }, [binaryView.buffer]);
+          } else {
+            worker.postMessage({ id: index, glyphBuffer: binaryView.buffer, style });
+          }
         });
       }),
     );
