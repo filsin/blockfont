@@ -25,36 +25,38 @@ const STYLES: readonly FontStyle[] = ["regular", "bold", "italic", "boldItalic"]
 
 async function buildReleaseFonts(): Promise<void> {
   const rootOutputDir = resolve(process.cwd(), "release-fonts");
-  console.log(`Starting release fonts generation in ${rootOutputDir}...`);
+  console.log(`Starting parallel release fonts generation in ${rootOutputDir}...`);
 
-  for (const preset of LANGUAGE_PRESETS) {
-    const combinedPresets: CharacterPreset[] = preset === "ascii"
-      ? ["ascii", "symbols"]
-      : [preset, "ascii", "symbols"];
+  await Promise.all(
+    LANGUAGE_PRESETS.map(async (preset) => {
+      const combinedPresets: CharacterPreset[] = preset === "ascii"
+        ? ["ascii", "symbols"]
+        : [preset, "ascii", "symbols"];
 
-    console.log(`\n📦 Generating preset: "${preset}" (combining ${combinedPresets.join(", ")})...`);
+      console.log(`📦 Generating preset: "${preset}" (combining ${combinedPresets.join(", ")})...`);
 
-    for (const format of FORMATS) {
-      const outputDirectory = resolve(rootOutputDir, preset, format);
+      for (const format of FORMATS) {
+        const outputDirectory = resolve(rootOutputDir, preset, format);
 
-      if (format === "ttc") {
-        await generateBlockFont({
-          version: "1.21",
-          presets: combinedPresets,
-          outputDirectory,
-          formats: ["ttc"],
-        });
-      } else {
-        await generateBlockFont({
-          version: "1.21",
-          presets: combinedPresets,
-          outputDirectory,
-          styles: STYLES,
-          formats: [format],
-        });
+        if (format === "ttc") {
+          await generateBlockFont({
+            version: "1.21",
+            presets: combinedPresets,
+            outputDirectory,
+            formats: ["ttc"],
+          });
+        } else {
+          await generateBlockFont({
+            version: "1.21",
+            presets: combinedPresets,
+            outputDirectory,
+            styles: STYLES,
+            formats: [format],
+          });
+        }
       }
-    }
-  }
+    }),
+  );
 
   console.log(`\n✅ Successfully generated all release font presets in ${rootOutputDir}`);
 }

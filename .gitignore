@@ -1,6 +1,6 @@
 node_modules/
 dist/
-assets/
+/assets/
 coverage/
 # Generated outputs & builds
 generated/
@@ -11,5 +11,5 @@ release-fonts/
 .DS_Store
 
 # Minecraft assets are downloaded at generation time and must not be committed.
-assets/
+/assets/
 .cache/blockfont/
