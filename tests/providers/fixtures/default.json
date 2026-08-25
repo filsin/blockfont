@@ -1,0 +1,37 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:font/fixture.png",
+      "ascent": 3,
+      "height": 4,
+      "boldOffset": 0.5,
+      "advance": 4,
+      "chars": ["A "]
+    },
+    {
+      "type": "unihex",
+      "hex_file": "minecraft:font/fixture.hex",
+      "resolution": 1,
+      "ascent": 14,
+      "boldOffset": 0.5,
+      "size_overrides": [
+        { "from": "00E9", "to": "00E9", "left": 1, "right": 1 }
+      ]
+    },
+    {
+      "type": "space",
+      "advances": { "\u2003": 3.5 }
+    },
+    {
+      "type": "reference",
+      "id": "minecraft:include/reference"
+    },
+    {
+      "type": "ttf",
+      "file": "minecraft:font/fixture.ttf",
+      "size": 16,
+      "shift": [0, 0]
+    }
+  ]
+}

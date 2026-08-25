@@ -1,0 +1,12 @@
+node_modules/
+dist/
+assets/
+coverage/
+generated/
+.vitest/
+*.log
+.DS_Store
+
+# Minecraft assets are downloaded at generation time and must not be committed.
+assets/
+.cache/blockfont/

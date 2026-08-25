@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlockFont - Preview & Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'BlockFont';
+      src: url('./generated/BlockFont-Complete.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal italic;
+      font-display: swap;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #1A1A1A;
+      color: #e5e5e5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 60px 20px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 36px;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    p.description {
+      color: #a3a3a3;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .size-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.875rem;
+      color: #888888;
+    }
+
+    .size-control input[type="range"] {
+      accent-color: #e5e5e5;
+      cursor: pointer;
+    }
+
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888888;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      background-color: #242424;
+      color: #e5e5e5;
+      font-family: 'BlockFont', monospace;
+      font-size: 24px;
+      line-height: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 0;
+      outline: none;
+      resize: vertical;
+      font-synthesis: none;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
+      text-underline-position: from-font;
+      text-decoration-thickness: from-font;
+      text-decoration-skip-ink: none;
+    }
+
+    textarea:focus {
+      background-color: #282828;
+    }
+
+    .style-regular {
+      font-weight: 400;
+      font-style: normal;
+      font-feature-settings: normal;
+    }
+
+    .style-italic {
+      font-weight: 400;
+      font-style: italic;
+      font-feature-settings: "ss02" 1;
+    }
+
+    .style-bold {
+      font-weight: 700;
+      font-style: normal;
+      font-feature-settings: "ss01" 1;
+    }
+
+    .style-bold-italic {
+      font-weight: 700;
+      font-style: italic;
+      font-feature-settings: "ss03" 1;
+    }
+    .section-options {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-label {
+      font-size: 0.8125rem;
+      color: #888888;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      accent-color: #e5e5e5;
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+
+    .checkbox-label:hover {
+      color: #b0b0b0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>BlockFont</h1>
+      <p class="description">
+        Cette page permet de tester la police <strong>BlockFont</strong> générée à partir des textures de Minecraft.
+        Chaque section présente un style typographique modifiable en temps réel afin de valider le rendu des glyphes
+        majuscules, minuscules, chiffrés et symboles.
+      </p>
+    </header>
+
+    <div class="toolbar">
+      <div class="size-control">
+        <span>Taille :</span>
+        <input type="range" id="sizeSlider" min="14" max="48" value="24">
+        <span id="sizeValue">24px</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Regular</div>
+      <textarea class="style-regular" spellcheck="false">Pack my box with five dozen liquor jugs. 0123456789
+Portez ce vieux whisky au juge blond qui fume.
+abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
+      <div class="section-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="underline-toggle"> Souligné
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Italic</div>
+      <textarea class="style-italic" spellcheck="false">Pack my box with five dozen liquor jugs. 0123456789
+Portez ce vieux whisky au juge blond qui fume.
+abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
+      <div class="section-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="underline-toggle"> Souligné
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Bold</div>
+      <textarea class="style-bold" spellcheck="false">Pack my box with five dozen liquor jugs. 0123456789
+Portez ce vieux whisky au juge blond qui fume.
+abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
+      <div class="section-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="underline-toggle"> Souligné
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Bold Italic</div>
+      <textarea class="style-bold-italic" spellcheck="false">Pack my box with five dozen liquor jugs. 0123456789
+Portez ce vieux whisky au juge blond qui fume.
+abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
+      <div class="section-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="underline-toggle"> Souligné
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const slider = document.getElementById('sizeSlider');
+    const sizeValue = document.getElementById('sizeValue');
+    const textareas = document.querySelectorAll('textarea');
+
+    slider.addEventListener('input', (e) => {
+      const size = e.target.value + 'px';
+      sizeValue.textContent = size;
+      textareas.forEach(ta => ta.style.fontSize = size);
+    });
+
+    document.querySelectorAll('.section').forEach(section => {
+      const ta = section.querySelector('textarea');
+      const cb = section.querySelector('.underline-toggle');
+      if (ta && cb) {
+        cb.addEventListener('change', () => {
+          ta.style.textDecoration = cb.checked ? 'underline' : 'none';
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>
