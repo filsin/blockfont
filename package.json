@@ -19,7 +19,7 @@
     "build": "tsc -p tsconfig.json && chmod +x dist/cli/index.js",
     "cli": "node dist/cli/index.js",
     "typecheck": "tsc --noEmit",
-    "build:release-fonts": "npx tsx src/build-release-fonts.ts",
+    "build:release-fonts": "bun src/build-release-fonts.ts",
     "pretest": "npm run build",
     "test": "vitest run"
   },
