@@ -35,6 +35,8 @@ jobs:
 
       - name: Generate Preset Fonts Hierarchy
         run: npm run build:release-fonts
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Archive Fonts Package
         run: zip -r blockfont-fonts.zip release-fonts/
