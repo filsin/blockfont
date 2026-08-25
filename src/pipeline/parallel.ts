@@ -7,6 +7,7 @@ import { styleGlyphs, type StyledGlyph } from "../styles/variants";
 
 
 import { computeGlyphCacheKey, GlyphCacheManager } from "./cache";
+import { createFastWorker, type FastWorkerInstance } from "../utils/bun-compat";
 
 export function getConcurrency(): number {
   try {
@@ -100,9 +101,9 @@ export async function parallelStyleGlyphs(
     await Promise.all(
       chunks.map((chunk, index) => {
         return new Promise<void>((resolvePromise, rejectPromise) => {
-          let worker: Worker;
+          let worker: FastWorkerInstance;
           try {
-            worker = new Worker(workerCode, { eval: true });
+            worker = createFastWorker(workerCode);
           } catch {
             try {
               results[index] = styleGlyphs(chunk, style);

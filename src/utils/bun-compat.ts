@@ -52,3 +52,55 @@ export function fastInflateSync(data: Uint8Array): Uint8Array {
   }
   return new Uint8Array(inflateSync(data));
 }
+
+export interface FastWorkerInstance {
+  postMessage: (msg: any, transfer?: any[]) => void;
+  on: (event: string, listener: (data: any) => void) => void;
+  terminate: () => void;
+}
+
+/**
+ * Creates a worker using Bun's native Worker API when running under Bun,
+ * with automatic fallback to node:worker_threads Worker under Node.js.
+ */
+export function createFastWorker(code: string): FastWorkerInstance {
+  if (typeof globalThis.Bun !== "undefined") {
+    try {
+      const WorkerClass = (globalThis.Bun as any).Worker || (globalThis as any).Worker;
+      if (typeof WorkerClass === "function") {
+        const blob = new Blob([code], { type: "application/javascript" });
+        const url = URL.createObjectURL(blob);
+        const worker = new WorkerClass(url);
+        return {
+          postMessage: (msg: any, transfer?: any[]) => worker.postMessage(msg, transfer),
+          on: (event: string, listener: (data: any) => void) => {
+            if (event === "message") {
+              worker.onmessage = (e: MessageEvent) => listener(e.data);
+            } else if (event === "error") {
+              worker.onerror = (e: ErrorEvent) => listener(e.error ?? e);
+            }
+          },
+          terminate: () => {
+            try {
+              worker.terminate();
+              URL.revokeObjectURL(url);
+            } catch {
+              // Ignore cleanup error
+            }
+          },
+        };
+      }
+    } catch {
+      // Fallback if Worker fails
+    }
+  }
+
+  // Node.js worker_threads Worker fallback
+  const { Worker } = require("node:worker_threads");
+  const worker = new Worker(code, { eval: true });
+  return {
+    postMessage: (msg: any, transfer?: any[]) => worker.postMessage(msg, transfer),
+    on: (event: string, listener: (data: any) => void) => worker.on(event, listener),
+    terminate: () => worker.terminate(),
+  };
+}
