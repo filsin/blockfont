@@ -35,11 +35,18 @@ jobs:
       - name: Generate Preset Fonts Hierarchy
         run: bun run src/build-release-fonts.ts
 
-      - name: Archive Fonts Package
-        run: zip -r blockfont-fonts.zip release-fonts/
+      - name: Archive Fonts Packages per Preset
+        run: |
+          cd release-fonts
+          for preset in */; do
+            preset_name="${preset%/}"
+            zip -r "../blockfont-${preset_name}.zip" "$preset_name"
+          done
+          cd ..
+          zip -r blockfont-all-presets.zip release-fonts/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: blockfont-fonts.zip
+          files: blockfont-*.zip
           generate_release_notes: true
