@@ -186,7 +186,18 @@ export function boldContours(
 export function regularContours(
   contours: readonly GeometryContourInput[],
 ): readonly GeometryContour[] {
-  return toGeometryContours(contours);
+  const converted = toGeometryContours(contours);
+  if (converted.length <= 1) return converted;
+  return unionOrthogonalContours(converted, [], 0) ?? converted;
+}
+
+/**
+ * Merges multiple overlapping orthogonal contours into minimal boundary loops.
+ */
+export function mergeOrthogonalContours(
+  contours: readonly GeometryContourInput[],
+): readonly GeometryContour[] {
+  return regularContours(contours);
 }
 
 export function italicContours(
