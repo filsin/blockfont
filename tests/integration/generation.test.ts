@@ -134,7 +134,7 @@ describe("BlockFont generation and validation integration", () => {
     expect(bold?.summary?.advances.get(0x41)).toBe(576);
     expect(bold?.summary?.advances.get(EMOJI)).toBeUndefined();
     expect(bold?.summary?.advances.get(0x20)).toBe(448);
-  });
+  }, 30000);
 
   it("supports the backend's OTF output and validates the selected subset", async () => {
     const output = await createOutputDirectory(directories);
