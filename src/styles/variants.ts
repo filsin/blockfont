@@ -58,15 +58,39 @@ function contourVertices(contour: GeometryContour): readonly GeometryPoint[] {
   ];
 }
 
+function snapPoint(point: GeometryPoint): GeometryPoint {
+  return {
+    x: Math.round(point.x),
+    y: Math.round(point.y),
+  };
+}
+
+function snapContour(contour: GeometryContour): GeometryContour {
+  const start = snapPoint(contour.start);
+  const segments = contour.segments.map((segment) => {
+    if (segment.type === "line") {
+      return { type: "line" as const, to: snapPoint(segment.to) };
+    }
+    return segment;
+  });
+  return {
+    ...contour,
+    start,
+    segments,
+  };
+}
+
 function isOrthogonalContour(contour: GeometryContour): boolean {
   if (!contour.closed) return false;
-  let previous = contour.start;
+  let previous = snapPoint(contour.start);
   for (const segment of contour.segments) {
     if (segment.type !== "line") return false;
-    if (previous.x !== segment.to.x && previous.y !== segment.to.y) return false;
-    previous = segment.to;
+    const to = snapPoint(segment.to);
+    if (previous.x !== to.x && previous.y !== to.y) return false;
+    previous = to;
   }
-  return previous.x === contour.start.x || previous.y === contour.start.y;
+  const start = snapPoint(contour.start);
+  return previous.x === start.x || previous.y === start.y;
 }
 
 function gcd(left: number, right: number): number {
@@ -85,13 +109,13 @@ function gridStep(contours: readonly GeometryContour[], boldOffset: number): num
   const yValues: number[] = [];
   for (const contour of contours) {
     for (const point of contourVertices(contour)) {
-      if (!Number.isSafeInteger(point.x) || !Number.isSafeInteger(point.y)) return undefined;
-      xValues.push(point.x);
-      yValues.push(point.y);
+      const snapped = snapPoint(point);
+      xValues.push(snapped.x);
+      yValues.push(snapped.y);
     }
   }
-  if (!Number.isSafeInteger(boldOffset)) return undefined;
-  let result = Math.abs(boldOffset);
+  const snappedOffset = Math.round(boldOffset);
+  let result = Math.abs(snappedOffset);
   for (const values of [xValues, yValues]) {
     const minimum = Math.min(...values);
     for (const value of values) result = gcd(result, value - minimum);
@@ -119,7 +143,7 @@ function nonZeroContains(x: number, y: number, contours: readonly GeometryContou
 
 /**
  * Performs a boolean union for grid-aligned orthogonal contours by sampling
- * the exact source cells and vectorizing the union again.  This is exact for
+ * the exact source cells and vectorizing the union again. This is exact for
  * bitmap geometry and preserves holes through the non-zero winding test.
  */
 function unionOrthogonalContours(
@@ -127,24 +151,28 @@ function unionOrthogonalContours(
   translated: readonly GeometryContour[],
   boldOffset: number,
 ): readonly GeometryContour[] | undefined {
-  const all = [...original, ...translated];
+  const snappedOriginal = original.map(snapContour);
+  const snappedTranslated = translated.map(snapContour);
+  const snappedOffset = Math.round(boldOffset);
+  const all = [...snappedOriginal, ...snappedTranslated];
   if (!all.every(isOrthogonalContour)) return undefined;
-  const step = gridStep(all, boldOffset);
+  const step = gridStep(all, snappedOffset);
   const bounds = getExactContoursBounds(all);
   if (step === undefined || bounds === undefined) return undefined;
-  if (![bounds.xMin, bounds.yMin, bounds.xMax, bounds.yMax].every(Number.isSafeInteger)) return undefined;
-  const width = (bounds.xMax - bounds.xMin) / step;
-  const height = (bounds.yMax - bounds.yMin) / step;
-  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1) return undefined;
-  // Avoid turning malformed/unbounded input into an unreasonably large grid.
-  if (width * height > 8_000_000) return undefined;
+  const xMin = Math.round(bounds.xMin);
+  const yMin = Math.round(bounds.yMin);
+  const xMax = Math.round(bounds.xMax);
+  const yMax = Math.round(bounds.yMax);
+  const width = Math.round((xMax - xMin) / step);
+  const height = Math.round((yMax - yMin) / step);
+  if (width < 1 || height < 1 || width * height > 8_000_000) return undefined;
 
   const data = new Uint8Array(width * height);
   for (let y = 0; y < height; y += 1) {
-    const centerY = bounds.yMin + (y + 0.5) * step;
+    const centerY = yMin + (y + 0.5) * step;
     for (let x = 0; x < width; x += 1) {
-      const centerX = bounds.xMin + (x + 0.5) * step;
-      if (nonZeroContains(centerX, centerY, original) || nonZeroContains(centerX, centerY, translated)) {
+      const centerX = xMin + (x + 0.5) * step;
+      if (nonZeroContains(centerX, centerY, snappedOriginal) || nonZeroContains(centerX, centerY, snappedTranslated)) {
         data[y * width + x] = 1;
       }
     }
@@ -155,8 +183,8 @@ function unionOrthogonalContours(
     {
       pixelWidth: step,
       pixelHeight: step,
-      originX: bounds.xMin,
-      originY: bounds.yMin,
+      originX: xMin,
+      originY: yMin,
       rowOrder: "bottom-to-top",
     },
   );
