@@ -658,6 +658,7 @@ export async function generateBlockFont(
     }
   }
 
+  styledByStyle.clear();
   const frozenFiles = Object.freeze(files);
   return Object.freeze({
     version,

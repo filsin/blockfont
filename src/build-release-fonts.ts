@@ -59,6 +59,15 @@ async function buildReleaseFonts(): Promise<void> {
     } catch {
       // Ignore temp cleanup errors
     }
+
+    // Trigger garbage collection if exposed to keep heap memory low
+    if (typeof globalThis.gc === "function") {
+      try {
+        globalThis.gc();
+      } catch {
+        // Ignore GC error
+      }
+    }
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
