@@ -147,10 +147,12 @@ function chooseSingle<T>(
   return Array.isArray(chosen) ? chosen : [chosen as T];
 }
 
+import { fastWriteFile } from "../utils/bun-compat";
+
 function createDefaultFileSystem(): BlockFontFileSystem {
   return {
     mkdir: (path, options) => nodeMkdir(path, options).then(() => undefined),
-    writeFile: (path, data) => nodeWriteFile(path, data),
+    writeFile: (path, data) => fastWriteFile(path, data),
   };
 }
 

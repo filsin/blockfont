@@ -3,15 +3,19 @@ import { join, resolve } from "node:path";
 import type { FontStyle } from "../core";
 import type { StyledGlyph } from "../styles/variants";
 
+import { createHash } from "node:crypto";
+
 export interface CacheKeyOptions {
   readonly codepoint: number;
   readonly style: FontStyle;
   readonly unitsPerEm?: number | undefined;
+  readonly sourceHash?: string | undefined;
 }
 
 export function computeGlyphCacheKey(options: CacheKeyOptions): string {
   const upm = options.unitsPerEm ?? 2048;
-  return `${options.codepoint}_${options.style}_${upm}`;
+  const rawKey = `${options.codepoint}_${options.style}_${upm}_${options.sourceHash ?? ""}`;
+  return createHash("sha256").update(rawKey).digest("hex");
 }
 
 export class GlyphCacheManager {

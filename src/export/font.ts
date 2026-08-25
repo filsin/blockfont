@@ -1,4 +1,4 @@
-import { deflateSync } from "node:zlib";
+import { fastDeflateSync } from "../utils/bun-compat";
 
 
 import { Font, Glyph } from "opentype.js";
@@ -453,7 +453,7 @@ export function serializeWoffFont(sfntBuffer: ArrayBuffer): ArrayBuffer {
     headerOffset += 16;
 
     const data = bytes.subarray(origOffset, origOffset + origLength);
-    const compressed = deflateSync(data);
+    const compressed = fastDeflateSync(data);
     const useCompressed = compressed.length < data.length;
 
     tables.push({
