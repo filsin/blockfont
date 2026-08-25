@@ -342,8 +342,31 @@ function normalizeSfntTimestamps(buffer: ArrayBuffer): Uint8Array {
 }
 
 import { parallelStyleGlyphs } from "./parallel";
-import { createOpenTypeFontFromStyled, generateTtcFont, serializeFont, serializeWoffFont } from "../export/font";
+import type { StyledGlyph } from "../styles/variants";
+import { createOpenTypeFontFromStyled, fontToTrueTypeOptions, generateTtcFont, serializeFont, serializeWoffFont } from "../export/font";
+import { serializeTrueTypeCollection } from "../export/ttf";
 
+
+function serializeStyledFontDeterministically(
+  styled: readonly StyledGlyph[],
+  style: FontStyle,
+  format: FontFormat,
+  options: {
+    readonly familyName: string;
+    readonly unitsPerEm?: number;
+    readonly fontMetrics?: FontMetrics;
+    readonly version?: string;
+    readonly copyright?: string;
+  },
+): Uint8Array {
+  const font = createOpenTypeFontFromStyled(styled, style, options);
+  font.createdTimestamp = -2082844800;
+  if (format === "woff") {
+    const ttfBytes = normalizeSfntTimestamps(serializeFont(font, "ttf"));
+    return new Uint8Array(serializeWoffFont(ttfBytes.buffer as ArrayBuffer));
+  }
+  return normalizeSfntTimestamps(serializeFont(font, format));
+}
 
 async function serializeDeterministicallyAsync(
   glyphs: readonly MinecraftGlyph[],
@@ -374,23 +397,21 @@ async function serializeDeterministicallyAsync(
     message: `Vectorizing ${style} glyphs in parallel across worker threads...`,
     total: targetGlyphs.length,
   });
-  const styled = await parallelStyleGlyphs(targetGlyphs, style, (cur, tot) => {
-    onProgress?.({
-      stage: "font-building",
-      message: `Vectorizing ${style} glyphs (${cur}/${tot})`,
-      current: cur,
-      total: tot,
-    });
-  });
-  const font = createOpenTypeFontFromStyled(styled, style, options);
+  const styled = await parallelStyleGlyphs(
+    targetGlyphs,
+    style,
+    (cur, tot) => {
+      onProgress?.({
+        stage: "font-building",
+        message: `Vectorizing ${style} glyphs (${cur}/${tot})`,
+        current: cur,
+        total: tot,
+      });
+    },
+    options.unitsPerEm,
+  );
 
-  font.createdTimestamp = -2082844800;
-  if (format === "woff") {
-    const ttfBytes = normalizeSfntTimestamps(serializeFont(font, "ttf"));
-    return new Uint8Array(serializeWoffFont(ttfBytes.buffer as ArrayBuffer));
-  }
-
-  return normalizeSfntTimestamps(serializeFont(font, format));
+  return serializeStyledFontDeterministically(styled, style, format, options);
 }
 
 
@@ -502,6 +523,54 @@ export async function generateBlockFont(
     throw new BlockFontOutputError(outputDirectory, error);
   }
 
+  // Pre-vectorize required styles ONCE for all requested formats and styles
+  const stylesToVectorize = new Set<FontStyle>();
+  if (formats.includes("ttc")) {
+    const allStyles: readonly FontStyle[] = ["regular", "bold", "italic", "boldItalic"];
+    const excludedSet = new Set(excludedStyles);
+    for (const s of allStyles) {
+      if (!excludedSet.has(s)) stylesToVectorize.add(s);
+    }
+  }
+  for (const s of styles) {
+    stylesToVectorize.add(s);
+  }
+
+  const styledByStyle = new Map<FontStyle, readonly StyledGlyph[]>();
+  for (const style of stylesToVectorize) {
+    let targetGlyphs = coverage.glyphs;
+    if (targetGlyphs.length > 65534) {
+      targetGlyphs = targetGlyphs.slice(0, 65534);
+    }
+    options.onProgress?.({
+      stage: "font-building",
+      message: `Vectorizing ${style} glyphs in parallel across worker threads...`,
+      total: targetGlyphs.length,
+    });
+    const styled = await parallelStyleGlyphs(
+      targetGlyphs,
+      style,
+      (cur, tot) => {
+        options.onProgress?.({
+          stage: "font-building",
+          message: `Vectorizing ${style} glyphs (${cur}/${tot})`,
+          current: cur,
+          total: tot,
+        });
+      },
+      exportUnitsPerEm,
+    );
+    styledByStyle.set(style, styled);
+  }
+
+  const fontOptions = {
+    familyName,
+    ...(exportUnitsPerEm === undefined ? {} : { unitsPerEm: exportUnitsPerEm }),
+    ...(options.fontMetrics === undefined ? {} : { fontMetrics: options.fontMetrics }),
+    ...(options.fontVersion === undefined ? {} : { version: options.fontVersion }),
+    ...(options.copyright === undefined ? {} : { copyright: options.copyright }),
+  };
+
   const files: BlockFontOutputFile[] = [];
   for (const format of formats) {
     if (format === "ttc") {
@@ -513,18 +582,13 @@ export async function generateBlockFont(
       }
       let bytes: Uint8Array;
       try {
-        const generated = generateTtcFont(
-          coverage.glyphs,
-          {
-            familyName,
-            ...(exportUnitsPerEm === undefined ? {} : { unitsPerEm: exportUnitsPerEm }),
-            ...(options.fontMetrics === undefined ? {} : { fontMetrics: options.fontMetrics }),
-            ...(options.fontVersion === undefined ? {} : { version: options.fontVersion }),
-            ...(options.copyright === undefined ? {} : { copyright: options.copyright }),
-          },
-          excludedStyles,
-        );
-        bytes = normalizeSfntTimestamps(generated.bytes);
+        const fontList = targetTtcStyles.map((style) => {
+          const styled = styledByStyle.get(style)!;
+          const font = createOpenTypeFontFromStyled(styled, style, fontOptions);
+          return { font, options: fontToTrueTypeOptions(font) };
+        });
+        const generated = serializeTrueTypeCollection(fontList);
+        bytes = normalizeSfntTimestamps(generated);
       } catch (error) {
         throw new BlockFontGenerationError(
           `Unable to generate ttc font collection`,
@@ -556,19 +620,8 @@ export async function generateBlockFont(
       for (const style of styles) {
         let bytes: Uint8Array;
         try {
-          bytes = await serializeDeterministicallyAsync(
-            coverage.glyphs,
-            style,
-            format,
-            {
-              familyName,
-              ...(exportUnitsPerEm === undefined ? {} : { unitsPerEm: exportUnitsPerEm }),
-              ...(options.fontMetrics === undefined ? {} : { fontMetrics: options.fontMetrics }),
-              ...(options.fontVersion === undefined ? {} : { version: options.fontVersion }),
-              ...(options.copyright === undefined ? {} : { copyright: options.copyright }),
-            },
-            options.onProgress,
-          );
+          const styled = styledByStyle.get(style)!;
+          bytes = serializeStyledFontDeterministically(styled, style, format, fontOptions);
         } catch (error) {
           throw new BlockFontGenerationError(
             `Unable to generate ${style} ${format} font`,

@@ -542,7 +542,7 @@ export function serializeWoffFont(sfntBuffer: ArrayBuffer): ArrayBuffer {
   return woffBuffer;
 }
 
-function fontToTrueTypeOptions(font: Font): TrueTypeFontOptions {
+export function fontToTrueTypeOptions(font: Font): TrueTypeFontOptions {
   const post = (font.tables as { [name: string]: { underlinePosition?: number; underlineThickness?: number } }).post;
   const os2 = (font.tables as { [name: string]: { usWeightClass?: number; fsSelection?: number } }).os2;
   const hhea = (font.tables as { [name: string]: { lineGap?: number } }).hhea;
