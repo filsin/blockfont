@@ -217,58 +217,69 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
+const ensureLocks = new Map<string, Promise<string>>();
+
 /**
  * Downloads official Minecraft assets from Mojang if not already present on disk.
  * Extracts `assets/` from `client.jar` and places them in `rootDirectory/<version>/assets/`
  * (or `rootDirectory/assets/` if root matches the layout).
  */
-export async function ensureMinecraftAssets(
+export function ensureMinecraftAssets(
   options: EnsureMinecraftAssetsOptions,
 ): Promise<string> {
   const version = validateAssetVersion(options.version);
   const root = resolve(options.rootDirectory);
-  const downloader = options.downloader ?? new MojangAssetDownloader();
-
-  // Check if default.json font definition exists locally already.
-  const versionedPath = join(root, version, "assets", "minecraft", "font", "default.json");
-  const directPath = join(root, "assets", "minecraft", "font", "default.json");
-
-  if (!options.force) {
-    if (await fileExists(versionedPath) || await fileExists(directPath)) {
-      return root;
-    }
+  const lockKey = `${root}_${version}`;
+  const existing = ensureLocks.get(lockKey);
+  if (existing !== undefined) {
+    return existing;
   }
+  const promise = (async () => {
+    const downloader = options.downloader ?? new MojangAssetDownloader();
 
-  const pkg = await downloader.getVersionPackage(version);
-  const jarBuffer = await downloader.downloadClientJar(pkg);
-  const jarAssets = extractZipEntries(jarBuffer, (name) => name.startsWith("assets/"));
+    // Check if default.json font definition exists locally already.
+    const versionedPath = join(root, version, "assets", "minecraft", "font", "default.json");
+    const directPath = join(root, "assets", "minecraft", "font", "default.json");
 
-  // Target directory for extracted assets: root/version
-  const targetBase = join(root, version);
-
-  for (const [name, data] of jarAssets.entries()) {
-    const filePath = join(targetBase, name);
-    await mkdir(dirname(filePath), { recursive: true });
-    await writeFile(filePath, data);
-  }
-
-  // Also check asset index for font resources like unifont.zip if present
-  try {
-    const index = await downloader.getAssetIndex(pkg);
-    if (index !== undefined && index.objects !== undefined) {
-      for (const [key, obj] of Object.entries(index.objects)) {
-        if (key.includes("font") || key.includes("default")) {
-          const relativeAssetPath = join("assets", key);
-          const targetFilePath = join(targetBase, relativeAssetPath);
-          const data = await downloader.downloadAssetObject(obj.hash);
-          await mkdir(dirname(targetFilePath), { recursive: true });
-          await writeFile(targetFilePath, data);
-        }
+    if (!options.force) {
+      if (await fileExists(versionedPath) || await fileExists(directPath)) {
+        return root;
       }
     }
-  } catch {
-    // Non-fatal if index objects fetch fails, as client.jar contains main font assets.
-  }
 
-  return root;
+    const pkg = await downloader.getVersionPackage(version);
+    const jarBuffer = await downloader.downloadClientJar(pkg);
+    const jarAssets = extractZipEntries(jarBuffer, (name) => name.startsWith("assets/"));
+
+    // Target directory for extracted assets: root/version
+    const targetBase = join(root, version);
+
+    for (const [name, data] of jarAssets.entries()) {
+      const filePath = join(targetBase, name);
+      await mkdir(dirname(filePath), { recursive: true });
+      await writeFile(filePath, data);
+    }
+
+    // Also check asset index for font resources like unifont.zip if present
+    try {
+      const index = await downloader.getAssetIndex(pkg);
+      if (index !== undefined && index.objects !== undefined) {
+        for (const [key, obj] of Object.entries(index.objects)) {
+          if (key.includes("font") || key.includes("default")) {
+            const relativeAssetPath = join("assets", key);
+            const targetFilePath = join(targetBase, relativeAssetPath);
+            const data = await downloader.downloadAssetObject(obj.hash);
+            await mkdir(dirname(targetFilePath), { recursive: true });
+            await writeFile(targetFilePath, data);
+          }
+        }
+      }
+    } catch {
+      // Non-fatal if index objects fetch fails, as client.jar contains main font assets.
+    }
+
+    return root;
+  })();
+  ensureLocks.set(lockKey, promise);
+  return promise;
 }

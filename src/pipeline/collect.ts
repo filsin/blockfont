@@ -3,6 +3,7 @@ import { inflateRawSync } from "node:zlib";
 import {
   parseResourceLocation,
   normalizeFontId,
+  extractZipEntries,
   type AssetStore,
 } from "../assets";
 import type { MinecraftFontDefinition } from "../providers";
@@ -113,11 +114,20 @@ function extractZipTextEntries(bytes: Uint8Array): string[] {
 function extractUnihexCodepoints(bytes: Uint8Array): readonly number[] {
   const isZip = bytes.length >= 4
     && bytes[0] === 0x50
-    && bytes[1] === 0x4b
-    && (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07);
-  const texts = isZip
-    ? extractZipTextEntries(bytes)
-    : [new TextDecoder("utf-8", { fatal: true }).decode(bytes)];
+    && bytes[1] === 0x4b;
+  let texts: string[] = [];
+  if (isZip) {
+    try {
+      const entriesMap = extractZipEntries(bytes, (name) => name.endsWith(".hex") || name.endsWith(".txt") || !name.includes("."));
+      for (const entryData of entriesMap.values()) {
+        texts.push(new TextDecoder("utf-8").decode(entryData));
+      }
+    } catch {
+      texts = extractZipTextEntries(bytes);
+    }
+  } else {
+    texts = [new TextDecoder("utf-8").decode(bytes)];
+  }
   const result = new Set<number>();
   for (const text of texts) {
     for (const line of text.split(/\r?\n/)) {
