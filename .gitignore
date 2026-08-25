@@ -2,7 +2,10 @@ node_modules/
 dist/
 assets/
 coverage/
+# Generated outputs & builds
 generated/
+release-fonts/
+*.zip
 .vitest/
 *.log
 .DS_Store

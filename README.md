@@ -19,6 +19,7 @@ A parallelized TypeScript typography engine that vectorizes vanilla Minecraft as
 
 ### 1. Command Line Interface (CLI)
 
+First, clone the repo and run `npm i` or `bun i`.
 Generate fonts directly from your terminal:
 
 ```bash
