@@ -11,9 +11,34 @@
   <style>
     @font-face {
       font-family: 'BlockFont';
-      src: url('./generated/BlockFont-Complete.ttf') format('truetype');
-      font-weight: 100 900;
-      font-style: normal italic;
+      src: url('./generated/BlockFont-Regular.woff') format('woff'),
+           url('./generated/BlockFont-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'BlockFont';
+      src: url('./generated/BlockFont-Italic.woff') format('woff'),
+           url('./generated/BlockFont-Italic.ttf') format('truetype');
+      font-weight: 400;
+      font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'BlockFont';
+      src: url('./generated/BlockFont-Bold.woff') format('woff'),
+           url('./generated/BlockFont-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'BlockFont';
+      src: url('./generated/BlockFont-BoldItalic.woff') format('woff'),
+           url('./generated/BlockFont-BoldItalic.ttf') format('truetype');
+      font-weight: 700;
+      font-style: italic;
       font-display: swap;
     }
 
