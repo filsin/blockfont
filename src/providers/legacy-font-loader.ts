@@ -5,7 +5,7 @@ import { BitmapGlyphProvider } from "./bitmap-provider";
 import { LegacyUnicodeProvider } from "./legacy-unicode-provider";
 
 /** Standard ASCII character matrix used in Minecraft 1.8–1.12.2 ascii.png */
-const LEGACY_ASCII_CHARS: readonly string[] = [
+export const LEGACY_ASCII_CHARS: readonly string[] = [
   "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
   "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
   " !\"#$%&'()*+,-./",
@@ -14,6 +14,14 @@ const LEGACY_ASCII_CHARS: readonly string[] = [
   "PQRSTUVWXYZ[\\]^_",
   "`abcdefghijklmno",
   "pqrstuvwxyz{|}~\u0000",
+  "ÇüéâäàåçêëèïîìÄÅ",
+  "ÉæÆôöòûùÿÖÜø£Ø×ƒ",
+  "áíóúñÑªº¿®¬½¼¡«»",
+  "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐",
+  "└┴┬├─┼╞╟╚╔╩╦╠═╬╧",
+  "╨╤╥╙╘╒Ⓢ╫╪┘┌█▄▌▐▀",
+  "αβΓπΣσμτΦΘΩδ∞∅∈∩",
+  "≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00A0",
 ];
 
 /**

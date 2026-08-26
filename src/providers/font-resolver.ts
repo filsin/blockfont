@@ -15,6 +15,7 @@ import {
   type MinecraftFontDefinition,
 } from "./font-definition";
 import { createGlyphProvider } from "./provider-factory";
+import { LEGACY_ASCII_CHARS } from "./legacy-font-loader";
 import type { GlyphProvider, ProviderContext } from "./provider-utils";
 
 export interface MinecraftFontResolverOptions {
@@ -102,16 +103,7 @@ export class MinecraftFontResolver {
               file: "minecraft:textures/font/ascii.png",
               ascent: 7,
               height: 8,
-              chars: [
-                "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-                "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-                " !\"#$%&'()*+,-./",
-                "0123456789:;<=>?",
-                "@ABCDEFGHIJKLMNO",
-                "PQRSTUVWXYZ[\\]^_",
-                "`abcdefghijklmno",
-                "pqrstuvwxyz{|}~\u0000",
-              ],
+              chars: LEGACY_ASCII_CHARS as unknown as string[],
             },
             {
               type: "legacy_unicode",
