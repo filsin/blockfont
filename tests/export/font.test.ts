@@ -11,16 +11,16 @@ import {
   serializeFont,
 } from "../../src/export/index";
 
-function glyph(codepoint = 65, advance = 192) {
+function glyph(codepoint = 65, advance = 300) {
   return createMinecraftGlyph({
     codepoint,
     contours: [createLineContour([
       { x: 0, y: 0 },
-      { x: 128, y: 0 },
-      { x: 128, y: 256 },
-      { x: 0, y: 256 },
+      { x: 200, y: 0 },
+      { x: 200, y: 400 },
+      { x: 0, y: 400 },
     ], "counterclockwise")],
-    metrics: { advance, boldOffset: 64, bearingLeft: 0, bearingTop: 256 },
+    metrics: { advance, boldOffset: 100, bearingLeft: 0, bearingTop: 400 },
   });
 }
 
@@ -57,10 +57,10 @@ function tableRecord(buffer: ArrayBuffer, expectedTag: string): { offset: number
 describe("OpenType font generation", () => {
   it("configures the one-pixel underline in the normalized y-up space", () => {
     expect(minecraftUnderlineMetrics()).toEqual({
-      top: -128,
-      bottom: -256,
-      position: -128,
-      thickness: 128,
+      top: -200,
+      bottom: -400,
+      position: -200,
+      thickness: 200,
     });
   });
 
@@ -79,15 +79,15 @@ describe("OpenType font generation", () => {
       expect(loaded.getEnglishName("fontFamily")).toBe("BlockFont");
       expect(loaded.numGlyphs).toBe(2);
       expect(loaded.charToGlyph("A").advanceWidth).toBeGreaterThan(0);
-      expect(loaded.tables.post?.underlineThickness).toBe(128);
-      expect(loaded.tables.post?.underlinePosition).toBe(-128);
+      expect(loaded.tables.post?.underlineThickness).toBe(200);
+      expect(loaded.tables.post?.underlinePosition).toBe(-200);
     }
   });
 
   it("preserves advance independently from visible bounds", () => {
     const font = createOpenTypeFont([glyph()], "italic");
-    expect(font.charToGlyph("A").advanceWidth).toBe(192);
-    expect(font.charToGlyph("A").getBoundingBox().x2).toBeGreaterThan(128);
+    expect(font.charToGlyph("A").advanceWidth).toBe(300);
+    expect(font.charToGlyph("A").getBoundingBox().x2).toBeGreaterThan(200);
   });
 
   it("writes a real TrueType file, not an OTTO/CFF file", () => {
@@ -105,15 +105,15 @@ describe("OpenType font generation", () => {
       expect(loaded.getEnglishName("fontSubfamily")).toBe(
         style === "boldItalic" ? "Bold Italic" : style[0]!.toUpperCase() + style.slice(1),
       );
-      expect(loaded.charToGlyph("A").advanceWidth).toBe(style === "bold" || style === "boldItalic" ? 256 : 192);
+      expect(loaded.charToGlyph("A").advanceWidth).toBe(style === "bold" || style === "boldItalic" ? 400 : 300);
       expect(loaded.charToGlyph("A").getBoundingBox().x2).toBeGreaterThan(0);
-      expect(loaded.tables.post?.underlineThickness).toBe(128);
-      expect(loaded.tables.post?.underlinePosition).toBe(-128);
+      expect(loaded.tables.post?.underlineThickness).toBe(200);
+      expect(loaded.tables.post?.underlinePosition).toBe(-200);
     }
   });
 
   it("writes coherent format 4 and format 12 cmap subtables together", () => {
-    const generated = generateFont([glyph(), glyph(0x1f600, 320)], "regular", { format: "ttf" });
+    const generated = generateFont([glyph(), glyph(0x1f600, 500)], "regular", { format: "ttf" });
     const bytes = new Uint8Array(generated.bytes);
     expect([...bytes.subarray(0, 4)]).toEqual([0, 1, 0, 0]);
 
@@ -148,16 +148,16 @@ describe("OpenType font generation", () => {
     const latin = loaded.charToGlyph("A");
     const emoji = loaded.charToGlyph("😀");
     expect(latin.index).not.toBe(emoji.index);
-    expect(latin.advanceWidth).toBe(192);
-    expect(emoji.advanceWidth).toBe(320);
+    expect(latin.advanceWidth).toBe(300);
+    expect(emoji.advanceWidth).toBe(500);
   });
 
   it("keeps U+FFFF in the format 12 cmap mapping", () => {
-    const generated = generateFont([glyph(), glyph(0xffff, 320)], "regular", { format: "ttf" });
+    const generated = generateFont([glyph(), glyph(0xffff, 500)], "regular", { format: "ttf" });
     const loaded = parse(generated.bytes);
     const special = loaded.charToGlyph(String.fromCodePoint(0xffff));
     expect(special.index).not.toBe(0);
-    expect(special.advanceWidth).toBe(320);
+    expect(special.advanceWidth).toBe(500);
   });
 
   it("rejects duplicate codepoints before constructing ambiguous cmap data", () => {

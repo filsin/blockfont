@@ -17,10 +17,10 @@ describe("glyph and font metrics", () => {
         bearingTop: 7,
       }),
     ).toEqual({
-      advance: 704,
-      boldOffset: 64,
-      bearingLeft: -64,
-      bearingTop: 896,
+      advance: 1100,
+      boldOffset: 100,
+      bearingLeft: -100,
+      bearingTop: 1400,
     });
   });
 
@@ -39,45 +39,45 @@ describe("glyph and font metrics", () => {
   it("validates font-wide metrics without deriving them from glyphs", () => {
     expect(
       createFontMetrics({
-        unitsPerEm: 2048,
+        unitsPerEm: 2000,
         baseline: 0,
-        ascent: 1024,
-        descent: -256,
+        ascent: 1600,
+        descent: -400,
         lineGap: 0,
-        underlinePosition: -128,
-        underlineThickness: 128,
+        underlinePosition: -200,
+        underlineThickness: 200,
       }),
     ).toEqual({
-      unitsPerEm: 2048,
+      unitsPerEm: 2000,
       baseline: 0,
-      ascent: 1024,
-      descent: -256,
+      ascent: 1600,
+      descent: -400,
       lineGap: 0,
-      underlinePosition: -128,
-      underlineThickness: 128,
+      underlinePosition: -200,
+      underlineThickness: 200,
     });
 
     expect(() =>
       createFontMetrics({
-        unitsPerEm: 2048,
+        unitsPerEm: 2000,
         baseline: 1,
-        ascent: 1024,
-        descent: -256,
+        ascent: 1600,
+        descent: -400,
         lineGap: 0,
-        underlinePosition: -128,
-        underlineThickness: 128,
+        underlinePosition: -200,
+        underlineThickness: 200,
       }),
     ).toThrow(RangeError);
 
     expect(() =>
       createFontMetrics({
-        unitsPerEm: 2048,
+        unitsPerEm: 2000,
         baseline: 0,
-        ascent: 1024,
-        descent: 256,
+        ascent: 1600,
+        descent: 400,
         lineGap: 0,
-        underlinePosition: -128,
-        underlineThickness: 128,
+        underlinePosition: -200,
+        underlineThickness: 200,
       }),
     ).toThrow(RangeError);
   });
@@ -91,10 +91,10 @@ describe("glyph and font metrics", () => {
         lineGap: 0,
       }),
     ).toEqual({
-      unitsPerEm: 2048,
+      unitsPerEm: 2000,
       baseline: 0,
-      ascent: 1024,
-      descent: -256,
+      ascent: 1600,
+      descent: -400,
       lineGap: 0,
     });
 

@@ -6,6 +6,7 @@ import type { FontStyle, MinecraftGlyph } from "../core/index";
 import {
   DEFAULT_COORDINATE_SCALE,
   DEFAULT_UNITS_PER_EM,
+  FONT_UNITS_PER_MINECRAFT_PIXEL,
   asIntegerFontUnit,
   createFontMetrics,
   type FontMetrics,
@@ -79,12 +80,12 @@ export function minecraftUnderlineMetrics(
 }
 
 export function defaultFontMetrics(unitsPerEm = DEFAULT_UNITS_PER_EM): FontMetrics {
-  const pixel = unitsPerEm / 16;
+  const pixel = unitsPerEm === DEFAULT_UNITS_PER_EM ? FONT_UNITS_PER_MINECRAFT_PIXEL : unitsPerEm / 10;
   const underline = minecraftUnderlineMetrics(pixel);
   return createFontMetrics({
     unitsPerEm,
     baseline: 0,
-    ascent: 9 * pixel,
+    ascent: 8 * pixel,
     descent: -2 * pixel,
     lineGap: 0,
     underlinePosition: underline.position,
@@ -301,7 +302,7 @@ export function buildMergedFontFromStyledGlyphs(
     version: options.version ?? "Version 0.1.0",
     copyright: options.copyright ?? "",
     weightClass: 500 as unknown as string,
-    fsSelection: 64 as unknown as string,
+    fsSelection: (64 | 128) as unknown as string,
 
 
     unitsPerEm,
@@ -380,7 +381,7 @@ export function createOpenTypeFontFromStyled(
     version: options.version ?? "Version 0.1.0",
     copyright: options.copyright ?? "",
     weightClass: weightClass(style),
-    fsSelection: (style === "regular" ? 64 : style === "bold" ? 32 : style === "boldItalic" ? 33 : 1) as unknown as string,
+    fsSelection: ((style === "regular" ? 64 : style === "bold" ? 32 : style === "boldItalic" ? 33 : 1) | 128) as unknown as string,
     unitsPerEm,
     ascender: metrics.ascent,
     descender: metrics.descent,

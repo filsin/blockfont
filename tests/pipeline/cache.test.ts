@@ -8,7 +8,7 @@ describe("GlyphCacheManager & Caching Engine", () => {
     const key2 = computeGlyphCacheKey({ codepoint: 65, style: "bold", unitsPerEm: 2048 });
     const key3 = computeGlyphCacheKey({ codepoint: 65, style: "regular", unitsPerEm: 2048 });
 
-    expect(key1).toBe("v2_65_bold_2048");
+    expect(key1).toBe("v3_65_bold_2048");
     expect(key1).toBe(key2);
     expect(key1).not.toBe(key3);
   });

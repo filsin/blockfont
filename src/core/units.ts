@@ -57,7 +57,7 @@ export const NORMALIZED_FONT_COORDINATE_SYSTEM: Readonly<FontCoordinateSystem> =
   });
 
 /** One Minecraft pixel in the stable default OpenType grid. */
-export const FONT_UNITS_PER_MINECRAFT_PIXEL = 128;
+export const FONT_UNITS_PER_MINECRAFT_PIXEL = 200;
 
 /** One half Minecraft pixel in the stable default OpenType grid. */
 export const FONT_UNITS_PER_MINECRAFT_HALF_PIXEL =
@@ -68,12 +68,11 @@ export const FONT_UNITS_PER_PIXEL = FONT_UNITS_PER_MINECRAFT_PIXEL;
 export const FONT_UNITS_PER_HALF_PIXEL = FONT_UNITS_PER_MINECRAFT_HALF_PIXEL;
 
 /**
- * Default em size: 16 Minecraft pixels at 128 units per pixel.
+ * Default em size: 10 Minecraft pixels at 200 units per pixel.
  *
- * The scale remains configurable for providers or future font families whose
- * em size is not 16 logical Minecraft pixels.
+ * Provides exact 70.0% capital height (1400 units) matching industry standard webfonts.
  */
-export const DEFAULT_UNITS_PER_EM = 2048;
+export const DEFAULT_UNITS_PER_EM = 2000;
 
 export const DEFAULT_COORDINATE_SCALE: Readonly<CoordinateScale> =
   Object.freeze({

@@ -157,12 +157,12 @@ describe("Minecraft font providers", () => {
     expect(glyph).toBeDefined();
     expect(glyph?.contours).toHaveLength(2);
     expect(glyph?.metrics).toEqual({
-      advance: 512,
-      boldOffset: 64,
+      advance: 800,
+      boldOffset: 100,
       bearingLeft: 0,
-      bearingTop: 384,
+      bearingTop: 600,
     });
-    expect(glyph?.bounds).toEqual({ xMin: 0, yMin: 128, xMax: 256, yMax: 384 });
+    expect(glyph?.bounds).toEqual({ xMin: 0, yMin: 200, xMax: 400, yMax: 600 });
   });
 
   it("scales bitmap fallback padding with a high-resolution source", async () => {
@@ -189,17 +189,17 @@ describe("Minecraft font providers", () => {
     ]);
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0x41);
-    expect(glyph?.metrics.advance).toBe(320);
-    expect(glyph?.bounds).toEqual({ xMin: 192, yMin: 320, xMax: 256, yMax: 384 });
+    expect(glyph?.metrics.advance).toBe(500);
+    expect(glyph?.bounds).toEqual({ xMin: 300, yMin: 500, xMax: 400, yMax: 600 });
   });
 
   it("resolves Unicode Unihex rows and preserves width, override bearings and half-pixel boldOffset", async () => {
     const resolver = new MinecraftFontResolver({ store: makeStore(), minecraftVersion: VERSION });
     const glyph = await resolver.resolveGlyph(0xE9);
-    expect(glyph?.metrics.advance).toBe(768);
-    expect(glyph?.metrics.boldOffset).toBe(64);
-    expect(glyph?.metrics.bearingLeft).toBe(128);
-    expect(glyph?.bounds?.xMin).toBe(-128);
+    expect(glyph?.metrics.advance).toBe(1200);
+    expect(glyph?.metrics.boldOffset).toBe(100);
+    expect(glyph?.metrics.bearingLeft).toBe(200);
+    expect(glyph?.bounds?.xMin).toBe(-200);
     expect(glyph?.bounds?.xMax).toBe(0);
   });
 
@@ -224,19 +224,19 @@ describe("Minecraft font providers", () => {
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0x41);
     expect(glyph?.contours).toHaveLength(1);
-    expect(glyph?.bounds?.xMax).toBe(128);
+    expect(glyph?.bounds?.xMax).toBe(200);
   });
 
   it("resolves space and reference providers without inventing contours", async () => {
     const resolver = new MinecraftFontResolver({ store: makeStore(), minecraftVersion: VERSION });
     const space = await resolver.resolveGlyph(0x2003);
     expect(space?.contours).toEqual([]);
-    expect(space?.metrics.advance).toBe(448);
+    expect(space?.metrics.advance).toBe(700);
     expect(space?.metrics.boldOffset).toBe(0);
 
     const referenced = await resolver.resolveGlyph(0x42);
     expect(referenced?.contours).toEqual([]);
-    expect(referenced?.metrics.advance).toBe(320);
+    expect(referenced?.metrics.advance).toBe(500);
   });
 
   it.each([
@@ -262,7 +262,7 @@ describe("Minecraft font providers", () => {
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0xE9);
     expect(glyph?.contours).toHaveLength(1);
-    expect(glyph?.metrics.advance).toBe(1024);
+    expect(glyph?.metrics.advance).toBe(1600);
   });
 
   it("reports a truncated Unihex ZIP instead of parsing partial data", async () => {
@@ -293,7 +293,7 @@ describe("Minecraft font providers", () => {
     // opentype.js writes TrueType quadratics as equivalent cubic commands;
     // the provider preserves that parsed curve instead of flattening it.
     expect(glyph?.contours[0]?.segments.some((segment) => segment.type === "cubic")).toBe(true);
-    expect(glyph?.metrics.advance).toBe(2048);
+    expect(glyph?.metrics.advance).toBe(3200);
   });
 
   it("applies coordinateRounding to TTF metrics as well as outline coordinates", async () => {
@@ -308,7 +308,7 @@ describe("Minecraft font providers", () => {
     }));
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: VERSION });
     const glyph = await resolver.resolveGlyph(0x44);
-    expect(glyph?.metrics.advance).toBe(1434);
+    expect(glyph?.metrics.advance).toBe(2240);
   });
 
   it("rejects non-integral TTF coordinates unless rounding is explicitly configured", async () => {
@@ -374,6 +374,6 @@ describe("Minecraft font providers", () => {
     }]);
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0x41);
-    expect(glyph?.metrics.advance).toBe(256);
+    expect(glyph?.metrics.advance).toBe(400);
   });
 });

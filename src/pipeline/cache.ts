@@ -10,10 +10,10 @@ export interface CacheKeyOptions {
   readonly sourceHash?: string | undefined;
 }
 
-export const CACHE_VERSION = "v2";
+export const CACHE_VERSION = "v3";
 
 export function computeGlyphCacheKey(options: CacheKeyOptions): string {
-  const upm = options.unitsPerEm ?? 2048;
+  const upm = options.unitsPerEm ?? 2000;
   const hash = options.sourceHash !== undefined && options.sourceHash.length > 0 ? `_${options.sourceHash}` : "";
   return `${CACHE_VERSION}_${options.codepoint}_${options.style}_${upm}${hash}`;
 }

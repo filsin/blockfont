@@ -2,10 +2,12 @@ import { readFile } from "node:fs/promises";
 
 import { parse, type Font } from "opentype.js";
 
-import type {
-  FontFormat,
-  FontStyle,
-  MinecraftGlyph,
+import {
+  DEFAULT_UNITS_PER_EM,
+  FONT_UNITS_PER_MINECRAFT_PIXEL,
+  type FontFormat,
+  type FontStyle,
+  type MinecraftGlyph,
 } from "../core";
 import type {
   BlockFontOutputFile,
@@ -388,7 +390,7 @@ function issueForFile(
 }
 
 function expectedUnderlineForUnits(unitsPerEm: number): UnderlineExpectation {
-  const pixel = unitsPerEm / 16;
+  const pixel = unitsPerEm === DEFAULT_UNITS_PER_EM ? FONT_UNITS_PER_MINECRAFT_PIXEL : unitsPerEm / 10;
   return Object.freeze({ position: -1 * pixel, thickness: pixel });
 }
 
@@ -411,11 +413,11 @@ export function validateGeneratedFonts(
   for (const file of generated.files) {
     stylesPresent.add(file.style);
     formatsPresent.add(file.format);
-    const unitsPerEm = options.verticalMetrics?.unitsPerEm ?? 2048;
+    const unitsPerEm = options.verticalMetrics?.unitsPerEm ?? DEFAULT_UNITS_PER_EM;
     const verticalMetrics = options.verticalMetrics ?? {
       unitsPerEm,
-      ascender: 9 * (unitsPerEm / 16),
-      descender: -2 * (unitsPerEm / 16),
+      ascender: 8 * FONT_UNITS_PER_MINECRAFT_PIXEL,
+      descender: -2 * FONT_UNITS_PER_MINECRAFT_PIXEL,
     };
     const underline = options.underline ?? expectedUnderlineForUnits(unitsPerEm);
     const expectedAdvances = options.expectedAdvances

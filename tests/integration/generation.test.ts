@@ -122,18 +122,18 @@ describe("BlockFont generation and validation integration", () => {
     expect(result.glyphs.find((glyph) => glyph.codepoint === 0x20)?.contours).toEqual([]);
 
     const regular = report.files.find((file) => file.summary?.format === "ttf");
-    expect(regular?.summary?.underlinePosition).toBe(-128);
-    expect(regular?.summary?.underlineThickness).toBe(128);
-    expect(regular?.summary?.ascender).toBe(1152);
-    expect(regular?.summary?.descender).toBe(-256);
-    expect(regular?.summary?.advances.get(0x20)).toBe(448);
-    expect(regular?.summary?.advances.get(0x41)).toBe(512);
+    expect(regular?.summary?.underlinePosition).toBe(-200);
+    expect(regular?.summary?.underlineThickness).toBe(200);
+    expect(regular?.summary?.ascender).toBe(1600);
+    expect(regular?.summary?.descender).toBe(-400);
+    expect(regular?.summary?.advances.get(0x20)).toBe(700);
+    expect(regular?.summary?.advances.get(0x41)).toBe(800);
     expect(regular?.summary?.advances.get(EMOJI)).toBeUndefined();
 
     const bold = report.files.find((file) => file.summary?.styleName === "Bold");
-    expect(bold?.summary?.advances.get(0x41)).toBe(576);
+    expect(bold?.summary?.advances.get(0x41)).toBe(900);
     expect(bold?.summary?.advances.get(EMOJI)).toBeUndefined();
-    expect(bold?.summary?.advances.get(0x20)).toBe(448);
+    expect(bold?.summary?.advances.get(0x20)).toBe(700);
   }, 30000);
 
   it("supports the backend's OTF output and validates the selected subset", async () => {
