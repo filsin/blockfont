@@ -19,7 +19,7 @@ flowchart LR
     TTF, OTF, WOFF, TTC"]
 ```
 
-BlockFont converts 8x8 bitmap textures and Unicode provider maps from Minecraft asset definitions into vector contours defined in normalized OpenType units (`unitsPerEm = 2048`).
+BlockFont converts 8x8 bitmap textures and Unicode provider maps from Minecraft asset definitions into vector contours defined in normalized OpenType units (`unitsPerEm = 2000`).
 
 ---
 
@@ -28,7 +28,7 @@ BlockFont converts 8x8 bitmap textures and Unicode provider maps from Minecraft 
 Minecraft font definitions are specified in JSON files (e.g., `font/default.json`). BlockFont implements a modular provider pipeline:
 
 - **`bitmap` Provider**: Reads PNG texture grids (e.g. `ascii.png`), extracts character width/bearing metadata, and converts non-transparent pixels into bitmap arrays.
-- **`unihex` Provider**: Reads GNU Unifont `.hex` binary bitmap tables for extended CJK and Unicode coverage.
+- **`unihex` Provider**: Reads GNU Unifont `.hex` binary bitmap tables for extended CJK, symbol, and Emoji coverage. Unihex 16px glyphs are automatically scaled ($0.5\times$) to 8 Minecraft pixels ($1600$ font units) to match vanilla line height without clipping.
 - **`space` Provider**: Contributes horizontal advance widths without visible contours (used for custom spacing and blank characters).
 - **`reference` Provider**: Delegates character lookup to another font definition ID.
 - **`ttf` Provider**: Extracts glyph vector contours directly from external TTF files.
@@ -43,8 +43,9 @@ To achieve pixel-perfect rendering without subpixel anti-aliasing artifacts:
 2. **Cell Merging & Contour Construction**: Adjacent pixels are merged into rectangular vector contours (`M`, `L`, `Z` commands).
 3. **Coordinates Normalization**: Coordinates are converted to OpenType's $Y$-up coordinate system where:
    - Baseline $y = 0$.
-   - $1 \text{ Minecraft pixel} = 128 \text{ font units}$ ($2048 / 16$).
-   - Ascender $y = 1152$ (+9 pixels), Descender $y = -256$ (-2 pixels).
+   - $1 \text{ Minecraft pixel} = 200 \text{ font units}$ ($2000 / 10$).
+   - Capital `'A'` height = $1400 \text{ font units}$ (exact $70.0\%$ of EM).
+   - Ascender $y = 1600$ (+8 pixels, $80.0\%$ of EM), Descender $y = -400$ (-2 pixels, $-20.0\%$ of EM).
 
 ---
 
@@ -69,7 +70,7 @@ BlockFont features a native binary serializer (`src/export/ttf.ts`) that constru
   - *TrueType Specification Compliance*: `hmtx.leftSideBearing` strictly matches `glyf.xMin` for every glyph to eliminate subpixel layout shifts.
 - **`glyf` & `loca`**: TrueType vector contour data and offset tables.
 - **`cmap`**: Format 4 (BMP) and Format 12 (full Unicode 0x10FFFF) mapping tables.
-- **`os/2`**: OS/2 metrics including `sCapHeight`, `sxHeight`, `usWinAscent`, `usWinDescent`.
+- **`os/2`**: OS/2 metrics including `sCapHeight` (1400), `sxHeight` (1000), `usWinAscent` (1600), `usWinDescent` (400), and `fsSelection` bit 7 (`0x0080` `USE_TYPO_METRICS`).
 - **`post`**: PostScript metadata and `underlinePosition` / `underlineThickness`.
 - **`name`**: Mandatory Name IDs 0–6 for full OS/PAO compatibility (including Macintosh Roman and Windows Unicode records).
 - **`serializeTrueTypeCollection`**: Packages multiple subfonts into a single `.ttc` container (`BlockFont-Complete.ttc`) with 4-byte DWORD offset alignment and absolute table directory offsets.
@@ -80,7 +81,7 @@ BlockFont features a native binary serializer (`src/export/ttf.ts`) that constru
 ## 5. Underline Metrics
 
 Underline metrics (`§n` in Minecraft) are defined in `minecraftUnderlineMetrics()`:
-- **`underlinePosition`**: `-128` font units (-1.0 Minecraft pixel below baseline).
-- **`underlineThickness`**: `128` font units (1.0 Minecraft pixel).
+- **`underlinePosition`**: `-200` font units (-1.0 Minecraft pixel below baseline).
+- **`underlineThickness`**: `200` font units (1.0 Minecraft pixel).
 
-This places the top edge of the underline bar at $y = -128$ font units, touching descenders ('p', 'g', 'j') pixel-to-pixel and leaving an exact 1-pixel gap below baseline characters.
+This places the top edge of the underline bar at $y = -200$ font units, touching descenders ('p', 'g', 'j') pixel-to-pixel and leaving an exact 1-pixel gap below baseline characters.

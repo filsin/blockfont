@@ -7,11 +7,13 @@ A parallelized TypeScript typography engine that vectorizes vanilla Minecraft as
 ## ✨ Features
 
 - **Pixel-Perfect Vectorization**: Converts 8x8 Minecraft bitmap textures and GNU Unifont grids into clean, orthogonal vector contours without blur or subpixel artifacts.
+- **Industry-Standard Typography Scale**: 2000 UPM grid with an exact 70.0% capital height (`'A'` = 1400 font units), perfectly matching standard OpenType web metrics and baseline alignment in browsers.
 - **4 Core Variants**: Generates `Regular` (weight 400), `Bold` (weight 700), `Italic` (shear 0.25), and `Bold Italic`.
+- **Resource Pack Overlay Support**: Pass any unzipped Minecraft Resource Pack (`-r, --resource-pack`) to overlay custom pack textures with automatic `pack.mcmeta` version deduction.
 - **TrueType Collections (.ttc)**: Multi-style container (`BlockFont-Complete.ttc`) natively supported by macOS, iOS, Windows, Adobe Photoshop, Figma, and Illustrator.
-- **Vanilla Underline Metrics**: Native OpenType `post` metrics configured to match Minecraft's 1-pixel underline placement.
-- **Character Presets & Custom Glyphs**: Select from built-in character sets (`ascii`, `latin`, `cyrillic`, `symbols`, CJK) and seamlessly inject custom Unicode scalars with deduplication.
-- **CLI & Typesafe API**: Full command-line interface (`npx blockfont`) and programmatic TypeScript API (`createFont()`).
+- **Vanilla Underline Metrics**: Native OpenType `post` metrics configured to match Minecraft's 1-pixel underline placement (`text-underline-position: from-font`).
+- **Character Presets & Emojis**: Built-in character sets (`ascii`, `latin`, `cyrillic`, `symbols`, `emojis`, CJK) with subpixel scaling ($0.5\times$) for emojis so they match line height without clipping.
+- **CLI & Typesafe API**: Full command-line interface (`npx blockfont`) and flexible programmatic TypeScript API (`createFont()`).
 
 ---
 
@@ -24,18 +26,18 @@ Generate fonts directly from your terminal:
 
 ```bash
 # Generate a TrueType Collection (.ttc) containing all variants for Minecraft 1.21
-npx blockfont generate ascii latin symbols -v 1.21 -o ./generated --format ttc
+npx blockfont generate latin -v 1.21 -o ./generated --format ttc
 
-# Generate individual WOFF web fonts for all 4 styles
-npx blockfont generate ascii latin -v 1.21 -o ./generated --style all --format woff
+# Generate fonts directly from a Minecraft Resource Pack with auto version detection
+npx blockfont generate latin -r "./resourcepacks/Faithful 32x" -o ./generated --style all --format woff
 
 # Exclude specific styles from a TTC collection
-npx blockfont generate ascii latin -v 1.21 -o ./generated --format ttc --exclude italic,bold-italic
+npx blockfont generate latin symbols emojis -v 1.21 -o ./generated --format ttc --exclude italic,bold-italic
 ```
 
 ### 2. Programmatic API (`createFont`)
 
-Use `createFont()` in TypeScript or JavaScript:
+Use `createFont()` in TypeScript or JavaScript (with optional single preset string or array):
 
 ```typescript
 import { createFont } from "blockfont";
@@ -44,8 +46,9 @@ const font = createFont({
   path: "./generated",
   format: "ttc",
   styles: ["all"],
-  characterSets: ["ascii", "latin", "symbols"],
-  minecraftVersion: "26.whatever.mojang.will.come.up.with.atp", // used to download the assets
+  characterSets: "latin", // accepts single preset or array: ["latin", "symbols", "emojis"]
+  resourcePack: "./resourcepacks/Faithful 32x", // optional custom Resource Pack
+  minecraftVersion: "26.2", // optional when resourcePack is provided
 });
 
 console.log("Generating font using createFont() API...");

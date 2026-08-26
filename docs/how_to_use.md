@@ -37,10 +37,12 @@ npx blockfont generate ascii latin -v 26.2 -o ./generated --format ttc --exclude
 
 #### CLI Flags:
 * `-v, --minecraft-version <version>`: Minecraft version to resolve assets for (e.g. `26.2`, `1.21`).
+* `-r, --resource-pack <path>`: Path to unzipped Minecraft Resource Pack directory containing `pack.mcmeta` (alias `--pack`). Automatically deduces version if omitted.
 * `-o, --output <directory>`: Output directory for generated font files (default: `./generated`).
 * `-s, --style <style>`: Font styles to generate (`regular`, `bold`, `italic`, `boldItalic`, or `all`).
 * `-f, --format <format>`: Output binary formats (`ttf`, `otf`, `woff`, `ttc`, or `all`).
 * `-e, --exclude <style>`: Styles to exclude from `.ttc` collection (only valid when format includes `ttc`).
+* `-p, --preset <preset>`: Presets to include (`ascii`, `latin`, `cyrillic`, `greek`, `arabic`, `hebrew`, `devanagari`, `thai`, `korean`, `japanese`, `chinese`, `symbols`, `emojis`, `all`).
 * `-c, --characters <text>`: Additional individual characters to include in the generated font.
 
 ---
@@ -56,9 +58,10 @@ const font = createFont({
   path: "./generated",
   format: "ttf", // "ttf" | "otf" | "woff" | "ttc" | "all"
   styles: ["regular", "bold"], // Valid options are ["regular", "bold", "italic", "boldItalic"] or ["all"]
-  characterSets: ["ascii", "latin", "symbols"],
+  characterSets: "latin", // accepts single preset string or array: ["latin", "symbols", "emojis"]
+  resourcePack: "./resourcepacks/Faithful 32x", // optional custom Resource Pack
   additionalChars: "★☆♠♣♥♦©®™АБВГ",
-  minecraftVersion: "1.21",
+  minecraftVersion: "1.21", // optional when resourcePack is provided
 });
 
 console.log("Generating font using createFont() API...");
@@ -79,10 +82,13 @@ TTC is a format collection that gathers every styles, therefore the only valid o
 ## Key Features
 
 - **Pixel-Perfect Vectorization**: Converts 8x8 Minecraft textures into sharp vector contours without blur or anti-aliasing artifacts.
+- **2000 UPM Typographic Scale**: Exact 70.0% capital height (`'A'` = 1400 font units) matching industry standards and `otherMCFont`.
 - **4 Core Variants**: `Regular` (weight 400), `Bold` (weight 700), `Italic` (shear 0.25), and `Bold Italic`.
+- **Resource Pack Overlaying**: Seamlessly load custom textures from any unzipped Minecraft Resource Pack.
+- **Subpixel Emoji Scaling**: Emojis and Unihex glyphs are scaled ($0.5\times$) to 8 Minecraft pixels ($1600$ font units) to fit the line height without top/bottom clipping.
 - **TrueType Collection (.ttc)**: Multi-style collection container (`BlockFont-Complete.ttc`) natively supported by macOS, iOS, Windows, Photoshop, and Figma.
-- **Selecting and combining charsets**: You can select exactly what charsets you want to use, and combine them with additional characters.
-- **Minecraft Underline Metrics**: Native OpenType `post` underline metrics (`§n`) configured to match Minecraft's 1-pixel underline placement.
+- **Selecting and combining charsets**: Select exact charsets (`ascii`, `latin`, `symbols`, `emojis`, CJK), and combine them with additional characters.
+- **Minecraft Underline Metrics**: Native OpenType `post` underline metrics (`§n`) configured to match Minecraft's 1-pixel underline placement (`position: -200`, `thickness: 200`).
 
 ---
 
@@ -135,5 +141,6 @@ Notice the `text-underline-position` and `text-decoration-thickness` CSS propert
 | :--- | :--- | :--- |
 | `--style` / `styles` | `regular`, `bold`, `italic`, `bold-italic`, `all` | Individual style files to generate. For TTC, must be `all`. |
 | `--format` / `format` | `ttf`, `otf`, `woff`, `ttc`, `all` | Target OpenType font file formats. |
+| `--resource-pack` / `resourcePack` | Directory path or `AssetStore` | Unzipped Resource Pack directory to overlay custom textures onto base assets. |
 | `--exclude` / `exclude` | `regular`, `bold`, `italic`, `bold-italic` | Styles to exclude from `.ttc` collection. |
-| Preset / `characterSets` | `ascii`, `latin`, `symbols`, ... | Built-in character sets for Minecraft font definitions. |
+| Preset / `characterSets` | `ascii`, `latin`, `symbols`, `emojis`, ... | Built-in character sets for Minecraft font definitions. Accepts string or array. |
