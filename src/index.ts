@@ -1,7 +1,9 @@
 export {
   createFont,
+  normalizeCharacterSets,
   type FontConfig,
   type CharacterSet,
+  type CharacterSetOption,
   type FontStyleOption,
 } from "./api/create-font";
 export {

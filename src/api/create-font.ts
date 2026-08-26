@@ -26,11 +26,21 @@ export type CharacterSet =
 /** Style configuration option for font generation. */
 export type FontStyleOption = "all" | readonly ("regular" | "bold" | "italic" | "boldItalic" | "all")[];
 
+/** Character set preset configuration option (single preset or array of presets). */
+export type CharacterSetOption = CharacterSet | readonly CharacterSet[];
+
+/** Normalizes character set configuration into a readonly array of CharacterSet presets. */
+export function normalizeCharacterSets(input: CharacterSetOption | undefined): readonly CharacterSet[] {
+  if (input === undefined) return Object.freeze(["latin"]);
+  if (typeof input === "string") return Object.freeze([input]);
+  return Object.freeze([...input]);
+}
+
 export type BaseFontConfig = {
   /** Output directory path for generated font files. */
   path: string;
-  /** Targeted character set presets. */
-  characterSets: readonly CharacterSet[];
+  /** Targeted character set preset(s) (e.g. "latin" or ["ascii", "latin"]). Defaults to ["latin"]. */
+  characterSets?: CharacterSetOption;
   /** Minecraft asset version (e.g. "1.21" or "26.2"). Optional if resourcePack is provided with a valid pack.mcmeta. */
   minecraftVersion?: string;
   /** Optional Resource Pack directory path or custom AssetStore instance to overlay custom textures onto base assets. */
@@ -63,7 +73,7 @@ export type FontConfig = TtcFontConfig | NonTtcFontConfig;
 /** Deduplicates custom characters against specified character set presets. */
 export function deduplicateAdditionalCharacters(
   additionalChars: string | undefined,
-  characterSets: readonly CharacterSet[],
+  characterSets: CharacterSetOption | undefined,
 ): {
   readonly newCharacters: string;
   readonly newCodepoints: readonly number[];
@@ -73,6 +83,7 @@ export function deduplicateAdditionalCharacters(
     return { newCharacters: "", newCodepoints: [], alreadyCoveredCount: 0 };
   }
 
+  const presets = normalizeCharacterSets(characterSets);
   const codepoints = Array.from(additionalChars).map((char) => char.codePointAt(0)!);
   const uniqueCodepoints = Array.from(new Set(codepoints));
 
@@ -80,7 +91,7 @@ export function deduplicateAdditionalCharacters(
   let alreadyCoveredCount = 0;
 
   for (const cp of uniqueCodepoints) {
-    if (isCodepointInPresets(cp, characterSets)) {
+    if (isCodepointInPresets(cp, presets)) {
       alreadyCoveredCount++;
     } else {
       newCodepoints.push(cp);
@@ -99,7 +110,7 @@ export function deduplicateAdditionalCharacters(
  * const font = createFont({
  *   path: "./generated",
  *   styles: "all",
- *   characterSets: ["ascii", "latin", "symbols"],
+ *   characterSets: "latin",
  *   format: "ttc",
  *   additionalChars: "★☆♠♣♥♦©®™",
  *   minecraftVersion: "1.21",
@@ -119,9 +130,11 @@ export function createFont(config: FontConfig): () => Promise<BlockFontGeneratio
       }
     }
 
+    const presets = normalizeCharacterSets(config.characterSets);
+
     const { newCharacters, newCodepoints, alreadyCoveredCount } = deduplicateAdditionalCharacters(
       config.additionalChars,
-      config.characterSets,
+      presets,
     );
 
     let styles: readonly FontStyle[];
@@ -146,7 +159,7 @@ export function createFont(config: FontConfig): () => Promise<BlockFontGeneratio
       ...(config.minecraftVersion !== undefined ? { version: config.minecraftVersion } : {}),
       ...(config.resourcePack !== undefined ? { resourcePack: config.resourcePack } : {}),
       outputDirectory: config.path,
-      presets: config.characterSets,
+      presets,
       ...(newCharacters.length > 0 ? { characters: newCharacters } : {}),
       styles,
       formats,

@@ -55,4 +55,22 @@ describe("createFont API", () => {
 
     expect(typeof font).toBe("function");
   });
+
+  it("supports single preset string or omitted characterSets defaulting to latin", () => {
+    const fontSingle = createFont({
+      path: "./generated",
+      characterSets: "latin",
+      minecraftVersion: "1.21",
+    });
+    expect(typeof fontSingle).toBe("function");
+
+    const fontOmitted = createFont({
+      path: "./generated",
+      minecraftVersion: "1.21",
+    });
+    expect(typeof fontOmitted).toBe("function");
+
+    const deduplicated = deduplicateAdditionalCharacters("★", "latin");
+    expect(deduplicated.newCharacters).toBe("★");
+  });
 });
