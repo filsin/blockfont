@@ -20,7 +20,7 @@
     "cli": "node dist/cli/index.js",
     "typecheck": "tsc --noEmit",
     "build:release-fonts": "bun src/build-release-fonts.ts",
-    "pretest": "npm run build",
+    "pretest": "bun run build",
     "test": "vitest run"
   },
   "dependencies": {
