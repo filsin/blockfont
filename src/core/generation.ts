@@ -21,6 +21,7 @@ export type CharacterPreset =
   | "japanese"
   | "chinese"
   | "symbols"
+  | "emojis"
   | "all";
 
 

@@ -21,13 +21,16 @@ describe("presets", () => {
     expect(isCodepointInPreset(0x044f, "cyrillic")).toBe(true); // Cyrillic 'я'
   });
 
-  it("correctly identifies Greek, Arabic, Hebrew, Devanagari, Thai & Symbols codepoints", () => {
+  it("correctly identifies Greek, Arabic, Hebrew, Devanagari, Thai, Symbols & Emojis codepoints", () => {
     expect(isCodepointInPreset(0x03b1, "greek")).toBe(true); // Greek 'α'
     expect(isCodepointInPreset(0x0627, "arabic")).toBe(true); // Arabic 'ا'
     expect(isCodepointInPreset(0x05d0, "hebrew")).toBe(true); // Hebrew 'א'
     expect(isCodepointInPreset(0x0905, "devanagari")).toBe(true); // Devanagari 'अ'
     expect(isCodepointInPreset(0x0e01, "thai")).toBe(true); // Thai 'ก'
     expect(isCodepointInPreset(0x221e, "symbols")).toBe(true); // Infinity '∞'
+    expect(isCodepointInPreset(0x221e, "emojis")).toBe(false);
+    expect(isCodepointInPreset(0x1f600, "emojis")).toBe(true); // 😀
+    expect(isCodepointInPreset(0x1f600, "symbols")).toBe(false);
   });
 
   it("combines multiple presets together", () => {

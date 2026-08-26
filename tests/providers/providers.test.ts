@@ -224,7 +224,7 @@ describe("Minecraft font providers", () => {
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0x41);
     expect(glyph?.contours).toHaveLength(1);
-    expect(glyph?.bounds?.xMax).toBe(200);
+    expect(glyph?.bounds?.xMax).toBe(100);
   });
 
   it("resolves space and reference providers without inventing contours", async () => {
@@ -262,7 +262,7 @@ describe("Minecraft font providers", () => {
     const resolver = new MinecraftFontResolver({ store, minecraftVersion: version });
     const glyph = await resolver.resolveGlyph(0xE9);
     expect(glyph?.contours).toHaveLength(1);
-    expect(glyph?.metrics.advance).toBe(1600);
+    expect(glyph?.metrics.advance).toBe(800);
   });
 
   it("reports a truncated Unihex ZIP instead of parsing partial data", async () => {

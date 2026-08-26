@@ -21,7 +21,8 @@ export type CharacterSet =
   | "korean"
   | "japanese"
   | "chinese"
-  | "symbols";
+  | "symbols"
+  | "emojis";
 
 /** Style configuration option for font generation. */
 export type FontStyleOption = "all" | readonly ("regular" | "bold" | "italic" | "boldItalic" | "all")[];

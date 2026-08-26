@@ -336,8 +336,8 @@ export class UnihexGlyphProvider implements GlyphProvider {
         rightMargin = override.right;
       }
     }
-    const logicalScale = this.definition.resolution
-      ?? (this.definition.height === undefined ? 1 : this.definition.height / 16);
+    const targetHeight = this.definition.height ?? 8;
+    const logicalScale = this.definition.resolution ?? (targetHeight / 16);
     const sourceHeight = logicalScale * 16;
     const sourceAscent = this.definition.ascent ?? sourceHeight;
     if (record.width < leftMargin + rightMargin) {

@@ -66,6 +66,8 @@ const PRESET_ALIASES: Readonly<Record<string, CharacterPreset>> = Object.freeze(
   japanese: "japanese",
   chinese: "chinese",
   symbols: "symbols",
+  emojis: "emojis",
+  emoji: "emojis",
   all: "all",
 });
 
@@ -409,7 +411,8 @@ export function buildProgram(): Command {
       console.log(`  korean       11,173   780.0 KB    Korean Hangul syllables`);
       console.log(`  japanese     11,630   305.8 KB    Japanese Hiragana, Katakana, Kanji`);
       console.log(`  chinese      21,151   1.48 MB     Chinese CJK Unified Ideographs`);
-      console.log(`  symbols      3,200    280.0 KB    Math, Braille, Box drawing, Emojis`);
+      console.log(`  symbols      3,072    260.0 KB    Math, Braille, Box drawing, Technical, Arrows`);
+      console.log(`  emojis       1,500    140.0 KB    Emojis & Miscellaneous Symbols/Pictographs`);
       console.log(`  all          114,581  862.0 KB    Full Minecraft discovery (capped to 8k for merged)\n`);
       lastExitCode = 0;
     });

@@ -56,7 +56,10 @@ export const PRESET_RANGES: Readonly<Record<Exclude<CharacterPreset, "all">, rea
   ]),
   symbols: Object.freeze<CodepointRange[]>([
     [0x2000, 0x2bff], // Math, Technical, Arrows, Box drawing, Geometric, Misc Symbols
-    [0x1f300, 0x1f9ff], // Emojis & Pictographs
+  ]),
+  emojis: Object.freeze<CodepointRange[]>([
+    [0x1f000, 0x1f9ff], // Emojis & Miscellaneous Symbols/Pictographs
+    [0x1fa00, 0x1faff], // Supplemental Symbols & Pictographs
   ]),
 });
 
