@@ -281,7 +281,7 @@ describe("BlockFont generation and validation integration", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     await expect(runCli(["--version"])).resolves.toBe(0);
-    expect(log).toHaveBeenCalledWith(expect.stringContaining("0.1.0"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("0.2.0"));
     await expect(runCli(["--help"])).resolves.toBe(0);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Usage:"));
     await expect(runCli(["--not-an-option"])).resolves.toBe(2);
