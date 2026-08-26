@@ -6,6 +6,8 @@ import type { FontFormat, FontStyle } from "../core/generation";
 
 import { InvalidBlockFontOptionsError } from "../pipeline/errors";
 
+import type { AssetStore } from "../assets";
+
 /** Supported character set presets for programmatic font generation (excludes "all"). */
 export type CharacterSet =
   | "ascii"
@@ -29,8 +31,10 @@ export type BaseFontConfig = {
   path: string;
   /** Targeted character set presets. */
   characterSets: readonly CharacterSet[];
-  /** Minecraft asset version (e.g. "1.21" or "26.2"). */
-  minecraftVersion: string;
+  /** Minecraft asset version (e.g. "1.21" or "26.2"). Optional if resourcePack is provided with a valid pack.mcmeta. */
+  minecraftVersion?: string;
+  /** Optional Resource Pack directory path or custom AssetStore instance to overlay custom textures onto base assets. */
+  resourcePack?: string | AssetStore;
   /** Optional custom characters string to include alongside presets. */
   additionalChars?: string;
 };
@@ -139,7 +143,8 @@ export function createFont(config: FontConfig): () => Promise<BlockFontGeneratio
     }
 
     const result = await generateBlockFont({
-      version: config.minecraftVersion,
+      ...(config.minecraftVersion !== undefined ? { version: config.minecraftVersion } : {}),
+      ...(config.resourcePack !== undefined ? { resourcePack: config.resourcePack } : {}),
       outputDirectory: config.path,
       presets: config.characterSets,
       ...(newCharacters.length > 0 ? { characters: newCharacters } : {}),

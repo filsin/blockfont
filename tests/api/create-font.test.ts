@@ -45,4 +45,14 @@ describe("createFont API", () => {
 
     await expect(font()).rejects.toThrow(/For "ttc" format fonts, "styles" must be "all" or \["all"\]/);
   });
+
+  it("supports resourcePack in createFont configuration without explicit minecraftVersion", () => {
+    const font = createFont({
+      path: "./generated",
+      characterSets: ["latin"],
+      resourcePack: "./resourcepack/Faithful 32x",
+    });
+
+    expect(typeof font).toBe("function");
+  });
 });

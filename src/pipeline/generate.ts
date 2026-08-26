@@ -233,15 +233,17 @@ async function createAssetStoreForOptions(
     }
   }
 
-  const packPath = selectStringAlias(
-    "resourcePack",
+  const packVal = selectAlias<string | AssetStore>(
     options.resourcePack,
     options.resourcePackPath,
     options.pack,
   );
 
-  if (packPath !== undefined) {
-    return new OverlayAssetStore({ packDirectory: packPath, vanillaStore });
+  if (packVal !== undefined) {
+    if (typeof packVal === "string") {
+      return new OverlayAssetStore({ packDirectory: packVal, vanillaStore });
+    }
+    return packVal;
   }
 
   return vanillaStore;
@@ -439,12 +441,12 @@ async function serializeDeterministicallyAsync(
 export async function generateBlockFont(
   options: BlockFontGenerationOptions,
 ): Promise<BlockFontGenerationResult> {
-  const packPath = selectStringAlias(
-    "resourcePack",
+  const packVal = selectAlias<string | AssetStore>(
     options.resourcePack,
     options.resourcePackPath,
     options.pack,
   );
+  const packPath = typeof packVal === "string" ? packVal : undefined;
 
   let rawVersion = selectStringAlias("version", options.version, options.minecraftVersion);
   if (packPath !== undefined && rawVersion === undefined) {

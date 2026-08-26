@@ -112,10 +112,10 @@ export interface BlockFontGenerationOptions {
   readonly dependencies?: BlockFontDependencies;
   readonly resolver?: BlockFontGlyphResolver;
   /** Optional custom metrics; unitsPerEm must agree with it when both are set. */
-  /** Optional path to an unzipped Minecraft Resource Pack directory. */
-  readonly resourcePack?: string;
-  readonly resourcePackPath?: string;
-  readonly pack?: string;
+  /** Optional path to an unzipped Minecraft Resource Pack directory or an AssetStore instance. */
+  readonly resourcePack?: string | AssetStore;
+  readonly resourcePackPath?: string | AssetStore;
+  readonly pack?: string | AssetStore;
   readonly fontMetrics?: FontMetrics;
   /** Optional progress callback for stage notifications. */
   readonly onProgress?: OnProgressCallback;
