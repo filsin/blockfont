@@ -10,10 +10,12 @@ export interface CacheKeyOptions {
   readonly sourceHash?: string | undefined;
 }
 
+export const CACHE_VERSION = "v2";
+
 export function computeGlyphCacheKey(options: CacheKeyOptions): string {
   const upm = options.unitsPerEm ?? 2048;
   const hash = options.sourceHash !== undefined && options.sourceHash.length > 0 ? `_${options.sourceHash}` : "";
-  return `${options.codepoint}_${options.style}_${upm}${hash}`;
+  return `${CACHE_VERSION}_${options.codepoint}_${options.style}_${upm}${hash}`;
 }
 
 export class GlyphCacheManager {

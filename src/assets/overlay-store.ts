@@ -3,12 +3,12 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { AssetNotFoundError, AssetSourceError } from "./errors";
 import {
+  getAssetCandidateRelativePaths,
   parseResourceLocation,
-  resourceLocationToAssetPath,
   resolveAssetPathWithinRoot,
   type ResourceLocationInput,
 } from "./resource-location";
-import type { AssetBytes, AssetSource } from "./asset-source";
+import type { AssetBytes } from "./asset-source";
 import type { AssetStore } from "./asset-store";
 
 /** Reads assets directly from an unzipped Minecraft resource pack directory. */
@@ -19,32 +19,29 @@ export class ResourcePackAssetStore implements AssetStore {
     this.rootDirectory = resolve(packDirectory);
   }
 
-  hasAsset(resource: ResourceLocationInput): boolean {
-    const parsed = parseResourceLocation(resource);
-    const relative = resourceLocationToAssetPath(parsed);
-    try {
-      const fullPath = resolveAssetPathWithinRoot(this.rootDirectory, relative);
-      return existsSync(fullPath);
-    } catch {
-      return false;
+  findAssetPath(resource: ResourceLocationInput): string | undefined {
+    const candidates = getAssetCandidateRelativePaths(resource);
+    for (const rel of candidates) {
+      try {
+        const fullPath = resolveAssetPathWithinRoot(this.rootDirectory, rel);
+        if (existsSync(fullPath)) {
+          return fullPath;
+        }
+      } catch {
+        // Continue searching candidates
+      }
     }
+    return undefined;
+  }
+
+  hasAsset(resource: ResourceLocationInput): boolean {
+    return this.findAssetPath(resource) !== undefined;
   }
 
   async read(version: string, resource: ResourceLocationInput): Promise<AssetBytes> {
-    const parsed = parseResourceLocation(resource);
-    const relative = resourceLocationToAssetPath(parsed);
-    let fullPath: string;
-    try {
-      fullPath = resolveAssetPathWithinRoot(this.rootDirectory, relative);
-    } catch (err) {
-      throw new AssetNotFoundError(
-        version,
-        `${parsed.namespace}:${parsed.path}`,
-        err,
-      );
-    }
-
-    if (!existsSync(fullPath)) {
+    const fullPath = this.findAssetPath(resource);
+    if (fullPath === undefined) {
+      const parsed = parseResourceLocation(resource);
       throw new AssetNotFoundError(
         version,
         `${parsed.namespace}:${parsed.path}`,
@@ -55,6 +52,7 @@ export class ResourcePackAssetStore implements AssetStore {
       const bytes = await readFile(fullPath);
       return new Uint8Array(bytes);
     } catch (err) {
+      const parsed = parseResourceLocation(resource);
       throw new AssetSourceError(
         `Failed to read resource pack asset: ${parsed.namespace}:${parsed.path}`,
         version,

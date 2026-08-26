@@ -132,6 +132,19 @@ export function resourceLocationToAssetPath(input: ResourceLocationInput): strin
   return posix.join("assets", resource.namespace, resource.path);
 }
 
+/** Returns candidate relative paths below asset roots, including font/ -> textures/font/ aliases. */
+export function getAssetCandidateRelativePaths(input: ResourceLocationInput): readonly string[] {
+  const parsed = parseResourceLocation(input);
+  const primaryPath = resourceLocationToAssetPath(parsed);
+  const relativePaths = [primaryPath, primaryPath.slice("assets/".length)];
+  if (parsed.path.startsWith("font/")) {
+    const textureParsed = { namespace: parsed.namespace, path: `textures/${parsed.path}` };
+    const textureRelPath = resourceLocationToAssetPath(textureParsed);
+    relativePaths.push(textureRelPath, textureRelPath.slice("assets/".length));
+  }
+  return relativePaths;
+}
+
 /** Normalizes a font id such as minecraft:default to a JSON font resource. */
 export function normalizeFontId(fontId: string): string {
   const resource = parseResourceLocation(fontId);

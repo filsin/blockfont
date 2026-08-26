@@ -5,11 +5,16 @@ coverage/
 # Generated outputs & builds
 generated/
 release-fonts/
+output/
+output-*/
+resourcepack/
+resourcepacks/
+resourcepack-output/
 *.zip
 .vitest/
 *.log
 .DS_Store
 
-# Minecraft assets are downloaded at generation time and must not be committed.
+# Minecraft assets & cache
 /assets/
-.cache/blockfont/
+.cache/

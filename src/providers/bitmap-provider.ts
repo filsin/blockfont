@@ -64,17 +64,9 @@ export class BitmapGlyphProvider implements GlyphProvider {
         this.definition.file,
       );
     }
-    if (image.width % columns !== 0 || image.height % rows !== 0) {
-      throw new InvalidProviderError(
-        `Bitmap dimensions ${image.width}x${image.height} are not divisible by ${columns}x${rows}`,
-        this.type,
-        this.definition.file,
-      );
-    }
-
-    const cellWidth = image.width / columns;
-    const cellHeight = image.height / rows;
-    const logicalHeight = this.definition.height ?? cellHeight;
+    const cellWidth = Math.round(image.width / columns);
+    const cellHeight = Math.round(image.height / rows);
+    const logicalHeight = this.definition.height ?? 8;
     if (logicalHeight <= 0) {
       throw new InvalidProviderError("Bitmap height must be positive", this.type);
     }

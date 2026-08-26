@@ -7,6 +7,7 @@ import {
   AssetVersionError,
 } from "./errors";
 import {
+  getAssetCandidateRelativePaths,
   parseResourceLocation,
   resourceLocationKey,
   resourceLocationToAssetPath,
@@ -119,16 +120,8 @@ export class LocalAssetSource implements AssetSource {
   }
 
   async read(version: string, resource: ResourceLocationInput): Promise<AssetBytes> {
-    assertVersion(version);
     const parsed = parseResourceLocation(resource);
-    const relativePath = resourceLocationToAssetPath(parsed);
-    const relativePathWithoutAssets = relativePath.slice("assets/".length);
-    const relativePaths = [relativePath, relativePathWithoutAssets];
-    if (parsed.path.startsWith("font/")) {
-      const textureParsed = { namespace: parsed.namespace, path: `textures/${parsed.path}` };
-      const textureRelPath = resourceLocationToAssetPath(textureParsed);
-      relativePaths.push(textureRelPath, textureRelPath.slice("assets/".length));
-    }
+    const relativePaths = getAssetCandidateRelativePaths(parsed);
 
     const roots = await this.getRoots(version);
     const candidates = roots.flatMap((root) =>

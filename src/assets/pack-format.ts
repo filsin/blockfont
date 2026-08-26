@@ -10,6 +10,22 @@ export interface PackMcmetaData {
 /**
  * Reads and parses `pack.mcmeta` from an unzipped resource pack directory.
  */
+function extractPackFormat(packObj: Record<string, unknown>): number {
+  if (typeof packObj.pack_format === "number") return packObj.pack_format;
+  if (typeof packObj.max_format === "number") return packObj.max_format;
+  if (typeof packObj.min_format === "number") return packObj.min_format;
+
+  const sf = packObj.supported_formats;
+  if (typeof sf === "number") return sf;
+  if (Array.isArray(sf) && typeof sf[0] === "number") return sf[0];
+  if (typeof sf === "object" && sf !== null) {
+    const maxInc = (sf as Record<string, unknown>).max_inclusive;
+    if (typeof maxInc === "number") return maxInc;
+  }
+
+  return 1;
+}
+
 export function parsePackMcmeta(packPath: string): PackMcmetaData {
   const mcmetaPath = join(packPath, "pack.mcmeta");
   if (!existsSync(mcmetaPath)) {
@@ -28,8 +44,10 @@ export function parsePackMcmeta(packPath: string): PackMcmetaData {
     throw new Error(`Invalid pack.mcmeta structure in ${mcmetaPath}: missing "pack" root key`);
   }
 
+
+
   const packObj = (content as Record<string, unknown>).pack as Record<string, unknown>;
-  const packFormat = typeof packObj.pack_format === "number" ? packObj.pack_format : 1;
+  const packFormat = extractPackFormat(packObj);
   const description = typeof packObj.description === "string" ? packObj.description : undefined;
 
   return {
