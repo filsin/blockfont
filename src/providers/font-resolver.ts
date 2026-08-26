@@ -93,7 +93,34 @@ export class MinecraftFontResolver {
     const key = `${version}\0${normalizedFontId}`;
     let promise = this.definitions.get(key);
     if (promise === undefined) {
-      promise = loadFontDefinition(this.store, version, normalizedFontId);
+      promise = loadFontDefinition(this.store, version, normalizedFontId).catch((err) => {
+        // Fallback for Legacy 1.8-1.12.2 fonts where font/*.json does not exist
+        return {
+          providers: [
+            {
+              type: "bitmap",
+              file: "minecraft:textures/font/ascii.png",
+              ascent: 7,
+              height: 8,
+              chars: [
+                "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+                "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+                " !\"#$%&'()*+,-./",
+                "0123456789:;<=>?",
+                "@ABCDEFGHIJKLMNO",
+                "PQRSTUVWXYZ[\\]^_",
+                "`abcdefghijklmno",
+                "pqrstuvwxyz{|}~\u0000",
+              ],
+            },
+            {
+              type: "legacy_unicode",
+              sizes: "minecraft:font/glyph_sizes.bin",
+              template: "minecraft:textures/font/unicode_page_%s.png",
+            },
+          ],
+        };
+      });
       this.definitions.set(key, promise);
     }
     return promise;

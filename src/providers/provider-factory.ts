@@ -1,5 +1,6 @@
 import { BitmapGlyphProvider } from "./bitmap-provider";
 import type { MinecraftProviderDefinition } from "./font-definition";
+import { LegacyUnicodeProvider } from "./legacy-unicode-provider";
 import { ReferenceGlyphProvider } from "./reference-provider";
 import { SpaceGlyphProvider } from "./space-provider";
 import { TtfGlyphProvider } from "./ttf-provider";
@@ -22,5 +23,12 @@ export function createGlyphProvider(
       return new ReferenceGlyphProvider(definition, context);
     case "ttf":
       return new TtfGlyphProvider(definition, context);
+    case "legacy_unicode":
+      return new LegacyUnicodeProvider({
+        sizesResource: definition.sizes,
+        templateResource: definition.template,
+        store: context.store,
+        version: context.version,
+      });
   }
 }

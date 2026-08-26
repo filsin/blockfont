@@ -25,6 +25,7 @@ export async function parallelStyleGlyphs(
   style: FontStyle,
   onProgress?: (processed: number, total: number) => void,
   unitsPerEm?: number,
+  sourceHash?: string,
 ): Promise<readonly StyledGlyph[]> {
   const total = glyphs.length;
   const cacheManager = GlyphCacheManager.getInstance();
@@ -35,7 +36,7 @@ export async function parallelStyleGlyphs(
 
   for (let index = 0; index < total; index += 1) {
     const glyph = glyphs[index]!;
-    const key = computeGlyphCacheKey({ codepoint: glyph.codepoint, style, unitsPerEm });
+    const key = computeGlyphCacheKey({ codepoint: glyph.codepoint, style, unitsPerEm, sourceHash });
     const cached = cacheManager.get(key);
     if (cached !== undefined) {
       resultMap.set(index, cached);
@@ -155,7 +156,7 @@ export async function parallelStyleGlyphs(
     const styled = newlyVectorized[idx]!;
     const originalIndex = uncachedIndices[idx]!;
     resultMap.set(originalIndex, styled);
-    const key = computeGlyphCacheKey({ codepoint: styled.codepoint, style, unitsPerEm });
+    const key = computeGlyphCacheKey({ codepoint: styled.codepoint, style, unitsPerEm, sourceHash });
     newCacheEntries.push([key, styled]);
   }
   cacheManager.setMany(newCacheEntries);

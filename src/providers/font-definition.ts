@@ -68,12 +68,24 @@ export interface TtfProviderDefinition extends CommonProviderDefinition {
   readonly coordinateRounding?: "reject" | "round";
 }
 
+export interface LegacyUnicodeProviderDefinition extends CommonProviderDefinition {
+  readonly type: "legacy_unicode";
+  readonly sizes: string;
+  readonly template: string;
+}
+
+export interface ProviderFilter {
+  readonly uniform?: boolean | undefined;
+  readonly jp?: boolean | undefined;
+}
+
 export type MinecraftProviderDefinition =
   | BitmapProviderDefinition
   | UnihexProviderDefinition
   | SpaceProviderDefinition
   | ReferenceProviderDefinition
-  | TtfProviderDefinition;
+  | TtfProviderDefinition
+  | LegacyUnicodeProviderDefinition;
 
 export interface MinecraftFontDefinition {
   readonly providers: readonly MinecraftProviderDefinition[];
@@ -395,6 +407,14 @@ function parseProvider(value: unknown, index: number): MinecraftProviderDefiniti
           ? {}
           : { oversample }),
         ...(coordinateRounding === undefined ? {} : { coordinateRounding }),
+      });
+    }
+    case "legacy_unicode": {
+      return Object.freeze({
+        ...common,
+        type,
+        sizes: requiredResource(value.sizes ?? "minecraft:font/glyph_sizes.bin", "legacy_unicode.sizes", type),
+        template: requiredString(value.template ?? "minecraft:font/unicode_page_%s.png", "legacy_unicode.template", type),
       });
     }
     default:

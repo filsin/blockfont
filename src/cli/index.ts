@@ -190,6 +190,8 @@ interface CliOptions {
   version?: string;
   minecraftVersion?: string;
   mcVersion?: string;
+  resourcePack?: string;
+  pack?: string;
   assets?: string;
   output?: string;
   font?: string;
@@ -229,7 +231,8 @@ async function executeGeneration(opts: CliOptions, topLevelPresets: string[]): P
       return 0;
     }
 
-    const minecraftVersion = typeof rawVersion === "string" ? rawVersion : "26.2";
+    const packPath = opts.resourcePack ?? opts.pack;
+    const minecraftVersion = typeof rawVersion === "string" ? rawVersion : (packPath !== undefined ? undefined : "26.2");
     if (!opts.output) {
       console.error("blockfont: Missing required option '-o, --output <path>'");
       return 1;
@@ -267,7 +270,8 @@ async function executeGeneration(opts: CliOptions, topLevelPresets: string[]): P
 
     let isLastTTY = false;
     const options: BlockFontGenerationOptions = {
-      version: minecraftVersion,
+      ...(minecraftVersion === undefined ? {} : { version: minecraftVersion }),
+      ...(packPath === undefined ? {} : { resourcePack: packPath }),
       assets: opts.assets ?? "./assets",
       outputDirectory: opts.output,
       ...(opts.font === undefined ? {} : { fontId: opts.font }),
@@ -326,6 +330,8 @@ export function buildProgram(): Command {
     .option("-v, --version [version]", "Print BlockFont version, or set Minecraft asset version")
     .option("--minecraft-version <version>", "Set Minecraft asset version")
     .option("--mc-version <version>", "Set Minecraft asset version")
+    .option("-r, --resource-pack <path>", "Path to unzipped Minecraft Resource Pack directory containing pack.mcmeta")
+    .option("--pack <path>", "Alias for --resource-pack")
     .option("-a, --assets <path>", "Root directory for Minecraft assets (default: ./assets)")
     .option("-o, --output <path>", "Directory where generated fonts are written")
     .option("-F, --font <id>", "Font id to resolve (default: minecraft:default)")
@@ -346,6 +352,8 @@ export function buildProgram(): Command {
     .description("Generate font files for targeted character presets (e.g. blockfont generate latin cyrillic)")
     .option("-v, --version <version>", "Minecraft asset version (e.g. 1.21)")
     .option("--minecraft-version <version>", "Minecraft asset version")
+    .option("-r, --resource-pack <path>", "Path to unzipped Minecraft Resource Pack directory containing pack.mcmeta")
+    .option("--pack <path>", "Alias for --resource-pack")
     .option("-a, --assets <path>", "Root directory for Minecraft assets (default: ./assets)")
     .option("-o, --output <path>", "Directory where generated fonts are written")
     .option("-F, --font <id>", "Font id to resolve (default: minecraft:default)")

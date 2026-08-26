@@ -12,7 +12,8 @@ export interface CacheKeyOptions {
 
 export function computeGlyphCacheKey(options: CacheKeyOptions): string {
   const upm = options.unitsPerEm ?? 2048;
-  return `${options.codepoint}_${options.style}_${upm}_${options.sourceHash ?? ""}`;
+  const hash = options.sourceHash !== undefined && options.sourceHash.length > 0 ? `_${options.sourceHash}` : "";
+  return `${options.codepoint}_${options.style}_${upm}${hash}`;
 }
 
 export class GlyphCacheManager {

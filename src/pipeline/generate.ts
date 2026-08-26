@@ -10,6 +10,8 @@ import {
   type AssetSource,
   type AssetStore,
 } from "../assets";
+import { parsePackMcmeta, mapPackFormatToMinecraftVersion } from "../assets/pack-format";
+import { OverlayAssetStore } from "../assets/overlay-store";
 import type { Font } from "opentype.js";
 
 import {
@@ -183,50 +185,66 @@ async function createAssetStoreForOptions(
   version: string,
   allowMissing: boolean,
 ): Promise<AssetStore | undefined> {
+  let vanillaStore: AssetStore;
   const store = selectAlias<AssetStore>(
     options.assetStore,
     options.store,
     dependencies.assetStore,
     dependencies.store,
   );
-  if (store !== undefined) return store;
+  if (store !== undefined) {
+    vanillaStore = store;
+  } else {
+    const source = selectAlias<AssetSource>(
+      options.assetSource,
+      options.source,
+      dependencies.assetSource,
+      dependencies.source,
+    );
+    if (source !== undefined) {
+      vanillaStore = new CachingAssetStore({
+        source,
+        ...(options.cacheDirectory === undefined
+          ? {}
+          : { cacheDirectory: options.cacheDirectory }),
+      });
+    } else {
+      const assetsDirectory = selectAlias(
+        selectStringAlias("assets", options.assets, options.assetsDirectory),
+      ) ?? "./assets";
 
-  const source = selectAlias<AssetSource>(
-    options.assetSource,
-    options.source,
-    dependencies.assetSource,
-    dependencies.source,
-  );
-  if (source !== undefined) {
-    return new CachingAssetStore({
-      source,
-      ...(options.cacheDirectory === undefined
-        ? {}
-        : { cacheDirectory: options.cacheDirectory }),
-    });
-  }
+      try {
+        await ensureMinecraftAssets({ version, rootDirectory: assetsDirectory });
+      } catch (error) {
+        if (!allowMissing) {
+          throw new InvalidBlockFontOptionsError(
+            `Unable to acquire official Minecraft assets for ${version}`,
+            error,
+          );
+        }
+      }
 
-  const assetsDirectory = selectAlias(
-    selectStringAlias("assets", options.assets, options.assetsDirectory),
-  ) ?? "./assets";
-
-  try {
-    await ensureMinecraftAssets({ version, rootDirectory: assetsDirectory });
-  } catch (error) {
-    if (!allowMissing) {
-      throw new InvalidBlockFontOptionsError(
-        `Unable to acquire official Minecraft assets for ${version}`,
-        error,
-      );
+      vanillaStore = new CachingAssetStore({
+        source: new LocalAssetSource(assetsDirectory),
+        ...(options.cacheDirectory === undefined
+          ? {}
+          : { cacheDirectory: options.cacheDirectory }),
+      });
     }
   }
 
-  return new CachingAssetStore({
-    source: new LocalAssetSource(assetsDirectory),
-    ...(options.cacheDirectory === undefined
-      ? {}
-      : { cacheDirectory: options.cacheDirectory }),
-  });
+  const packPath = selectStringAlias(
+    "resourcePack",
+    options.resourcePack,
+    options.resourcePackPath,
+    options.pack,
+  );
+
+  if (packPath !== undefined) {
+    return new OverlayAssetStore({ packDirectory: packPath, vanillaStore });
+  }
+
+  return vanillaStore;
 }
 
 function getResolver(
@@ -421,10 +439,19 @@ async function serializeDeterministicallyAsync(
 export async function generateBlockFont(
   options: BlockFontGenerationOptions,
 ): Promise<BlockFontGenerationResult> {
-  const version = nonEmpty(
-    selectStringAlias("version", options.version, options.minecraftVersion),
-    "version",
+  const packPath = selectStringAlias(
+    "resourcePack",
+    options.resourcePack,
+    options.resourcePackPath,
+    options.pack,
   );
+
+  let rawVersion = selectStringAlias("version", options.version, options.minecraftVersion);
+  if (packPath !== undefined && rawVersion === undefined) {
+    const mcmeta = parsePackMcmeta(packPath);
+    rawVersion = mapPackFormatToMinecraftVersion(mcmeta.packFormat);
+  }
+  const version = nonEmpty(rawVersion ?? "26.2", "version");
   try {
     validateAssetVersion(version);
   } catch (error) {
@@ -538,6 +565,8 @@ export async function generateBlockFont(
     stylesToVectorize.add(s);
   }
 
+  const sourceHash = `${version}:${fontId}:${packPath ?? "vanilla"}`;
+
   const styledByStyle = new Map<FontStyle, readonly StyledGlyph[]>();
   for (const style of stylesToVectorize) {
     let targetGlyphs = coverage.glyphs;
@@ -561,6 +590,7 @@ export async function generateBlockFont(
         });
       },
       exportUnitsPerEm,
+      sourceHash,
     );
     styledByStyle.set(style, styled);
   }
